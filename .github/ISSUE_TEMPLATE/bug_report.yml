@@ -16,10 +16,29 @@ body:
       label: Relevant Screenshot
       description: If applicable, add screenshots or a screen recording to help explain your problem.
   - type: textarea
+    id: text-before
+    attributes:
+      label: Text **before** pasting it into Obsidian.
+    validations:
+      required: true
+  - type: textarea
+    id: text-after
+    attributes:
+      label: Text **after** pasting it into Obsidian.
+    validations:
+      required: true
+  - type: input
+    id: text-source
+    attributes:
+      label: Where the text was copied from
+      placeholder: Discord, PDF, twitter.com, etc.
+    validations:
+      required: true
+  - type: textarea
     id: reproduction-steps
     attributes:
       label: To Reproduce
-      description: Steps to reproduce the problem
+      description: Steps to reproduce the problem (if not covered by the fields before).
       placeholder: |
         For example:
         1. Go to '...'
@@ -47,4 +66,3 @@ body:
       options:
         - label: I updated to the latest version of the plugin.
           required: true
-

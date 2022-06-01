@@ -3,6 +3,10 @@ description: Suggest an idea
 title: "Feature Request: "
 labels: ["feature request"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Before requesting formatting for copypastes from a specific website or app, please be aware that there are literally hundreds websites and apps, and it will therefore be impossible to implement all of them. This plugin's goal is therefore to focus on the most common ones.
   - type: textarea
     id: feature-requested
     attributes:

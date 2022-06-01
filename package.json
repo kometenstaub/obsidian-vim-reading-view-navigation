@@ -1,7 +1,7 @@
 {
-	"name": "{{plugin-name}}",
-	"version": "0.1.0",
-	"description": "{{plugin-desc}}",
+	"name": "obsidian-smarter-paste",
+	"version": "0.7.0",
+	"description": "Various improvements for when you paste things into Obsidian.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
