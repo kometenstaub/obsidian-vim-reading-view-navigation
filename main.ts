@@ -1,11 +1,6 @@
-import { Extension } from "@codemirror/state";
-import { Editor, EditorPosition, EventRef, Events, MarkdownView, Notice, Plugin, htmlToMarkdown } from "obsidian";
-import clipboardModifications from "clipboardModification";
+import { EventRef, Events, MarkdownView, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
 import { around } from "monkey-around";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
-interface PasteFunction {
-	(this: HTMLElement, ev: ClipboardEvent): void;
-}
 
 // add type safety for the undocumented methods
 declare module "obsidian" {
@@ -15,6 +10,14 @@ declare module "obsidian" {
 	}
 }
 
+interface YankSettings {
+	timeout: number;
+}
+
+const DEFAULT_SETTINGS: YankSettings = {
+	timeout: 2000,
+}
+
 class YankEvent extends Events {
 	on(name: "vim-yank", callback: (text: string) => void): EventRef;
 	on(name: string, callback: (...data: any) => any, ctx?: any): EventRef {
@@ -22,7 +25,8 @@ class YankEvent extends Events {
 	}
 }
 
-function matchHighlighter (evt: YankEvent) {
+// cm6 view plugin
+function matchHighlighter (evt: YankEvent, timeout: number) {
 	return ViewPlugin.fromClass(
 		class {
 			decorations: DecorationSet;
@@ -34,7 +38,7 @@ function matchHighlighter (evt: YankEvent) {
 					const [cursorFrom, cursorTo] = this.getPositions();
 					this.decorations = this.makeYankDeco(view, cursorFrom, cursorTo);
 					// timeout needs to be configured in settings
-					window.setTimeout(() => this.decorations = Decoration.none, 2000);
+					window.setTimeout(() => this.decorations = Decoration.none, timeout);
 				}
 				);
 			}
@@ -47,6 +51,7 @@ function matchHighlighter (evt: YankEvent) {
 			// }
 
 			getPositions() {
+				// @ts-expect-error, not typed
 				const { editor } = app.workspace.activeLeaf.view;
 				const cursorFrom = editor.posToOffset(app.workspace.getActiveViewOfType(MarkdownView)
 					.editor
@@ -64,7 +69,6 @@ function matchHighlighter (evt: YankEvent) {
 					attributes: { "data-contents": "string" },
 				});
 				deco.push(yankDeco.range(posFrom, posTo));
-				console.log(deco);
 				return Decoration.set(deco);
 			}
 		},
@@ -73,13 +77,15 @@ function matchHighlighter (evt: YankEvent) {
 }
 
 
-export default class SmarterPasting extends Plugin {
-	pasteFunction: PasteFunction;
+export default class YankHighlighter extends Plugin {
 	yankEventUninstaller: any;
 	uninstall = false;
 	yank: YankEvent;
+	settings: YankSettings;
 
 	async onload() {
+		await this.loadSettings();
+		this.addSettingTab(new YankSettingTab(this.app, this));
 		if (this.app.vault.getConfig("vimMode")) {
 			const yank = new YankEvent();
 			// @ts-ignore
@@ -94,76 +100,69 @@ export default class SmarterPasting extends Plugin {
 					};
 				}
 			});
-			this.registerEditorExtension( matchHighlighter(yank) );
+			this.registerEditorExtension( matchHighlighter(yank, this.settings.timeout) );
 			this.uninstall = true;
 		}
-		console.log("Pasta Copinara Plugin loaded.");
-
-		this.pasteFunction = this.modifyPasteEvent.bind(this); // Listen to paste event
-
-		this.registerEvent(
-			this.app.workspace.on("editor-paste", this.pasteFunction)
-
-		);
-
-		this.addCommand({
-			id: "paste-as-plain-text",
-			name: "Paste as Plain Text & without Modifications",
-			editorCallback: (editor) => this.pasteAsPlainText(editor),
-		});
-
+		console.log("Yank Highlight plugin loaded.");
 
 	}
 	async onunload() {
 		if (this.uninstall) 
 			this.yankEventUninstaller();
 
-		console.log("Pasta Copinara Plugin unloaded.");
+		console.log("Yank Highlight plugin unloaded.");
+	}
+	async loadSettings() {
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			await this.loadData()
+		);
 	}
 
-	private getEditor(): Editor {
-		const activeLeaf = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if (!activeLeaf) return;
-		return activeLeaf.editor;
+	async saveSettings() {
+		await this.saveData(this.settings);
 	}
-
-	async modifyPasteEvent (clipboardEv: ClipboardEvent): Promise<void> {
-
-		const editor = this.getEditor();
-		if (!editor) return; // pane isn't markdown editor
-
-		// check for plain text, too, since getData("text/html") ignores plain-text
-		const plainClipboard = clipboardEv.clipboardData.getData("text/plain");
-		if (!plainClipboard) return; // e.g. when clipboard contains image
-
-		// prevent conflict with Auto Title Link Plugin
-		const linkRegex = /^((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()[\]{};:'".,<>?«»“”‘’]))$/i;
-		if (linkRegex.test(plainClipboard.trim())) {
-			console.log("Pasta Copinara aborted due to being link to avoid conflict with the Auto Title Link Plugin.");
-			return;
-		}
-
-		// prevent default pasting --> https://github.com/obsidianmd/obsidian-api/blob/master/obsidian.d.ts#L3801
-		clipboardEv.stopPropagation();
-		clipboardEv.preventDefault();
-
-		// use Turndown via Obsidian API to emulate "Auto Convert HTML" setting
-		let clipboardText;
-		const convertHtmlEnabled = this.app.vault.getConfig("autoConvertHtml");
-		const htmlClipboard = clipboardEv.clipboardData.getData("text/html");
-		if (htmlClipboard && convertHtmlEnabled) clipboardText = htmlToMarkdown(htmlClipboard);
-		else clipboardText = plainClipboard;
-
-		if (clipboardEv.defaultPrevented) clipboardModifications(editor, clipboardText);
-	}
-
-	async pasteAsPlainText (editor: Editor): Promise<void> {
-		const clipboardContent = await navigator.clipboard.readText();
-		if (!clipboardContent) {
-			new Notice ("There is no clipboard content.");
-			return;
-		}
-		editor.replaceSelection(clipboardContent);
-	}
-
 }
+
+class YankSettingTab extends PluginSettingTab {
+	plugin: YankHighlighter;
+
+	constructor(app: App, plugin: SKOSPlugin) {
+		super(app, plugin);
+		this.plugin = plugin;
+	}
+
+	display(): void {
+		const { containerEl } = this;
+		const { settings } = this.plugin;
+
+		containerEl.empty();
+
+		containerEl.createEl('h2', {
+			text: 'Yank Highligher settings',
+		});
+
+		new Setting(containerEl)
+			.setName('Highlight timeout')
+			.setDesc(
+				'The timeout is in milliseconds.'
+			)
+			.addText((text) => {
+				text.setPlaceholder(
+					'Enter a number greater than 0. Default: 2000'
+				)
+					.setValue(settings.timeout.toString())
+					.onChange(async (value) => {
+						const num = Number.parseInt(value);
+						if (Number.isInteger(num) && num > 0) {
+							settings.timeout = num;
+							await this.plugin.saveSettings();
+						} else {
+							new Notice(
+								'Please enter an integer greater than 0.'
+							);
+						}
+					});
+			});
+	}}

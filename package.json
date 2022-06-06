@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-smarter-paste",
-	"version": "0.7.0",
-	"description": "Various improvements for when you paste things into Obsidian.",
+	"name": "yank-highlight",
+	"version": "0.0.1",
+	"description": "Yank Highlighter for the Vim mode.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
