@@ -1,7 +1,8 @@
+import { Extension } from "@codemirror/state";
 import { Editor, EditorPosition, EventRef, Events, MarkdownView, Notice, Plugin, htmlToMarkdown } from "obsidian";
 import clipboardModifications from "clipboardModification";
 import { around } from "monkey-around";
-
+import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
 interface PasteFunction {
 	(this: HTMLElement, ev: ClipboardEvent): void;
 }
@@ -15,10 +16,60 @@ declare module "obsidian" {
 }
 
 class YankEvent extends Events {
-	on(name: "vim-yank", callback: (text: string) => [EditorPosition, EditorPosition, string]): EventRef;
+	on(name: "vim-yank", callback: (text: string) => void): EventRef;
 	on(name: string, callback: (...data: any) => any, ctx?: any): EventRef {
 		return super.on(name, callback, ctx);
 	}
+}
+
+function matchHighlighter (evt: YankEvent) {
+	return ViewPlugin.fromClass(
+		class {
+			decorations: DecorationSet;
+			// highlightTime: number;
+
+			constructor(view: EditorView) {
+				this.decorations = Decoration.none;
+				evt.on("vim-yank", (text) => {
+					const [cursorFrom, cursorTo] = this.getPositions();
+					this.decorations = this.makeYankDeco(view, cursorFrom, cursorTo);
+					// timeout needs to be configured in settings
+					window.setTimeout(() => this.decorations = Decoration.none, 2000);
+				}
+				);
+			}
+			// update unnecessary because highlight gets removed by timeout; otherwise it would never apply the classes
+			// update(update: ViewUpdate) {
+			//	if (update.selectionSet || update.docChanged || update.viewportChanged) {
+			//		this.decorations = Decoration.none;
+			//		// this.makeYankDeco(update.view);
+			//
+			// }
+
+			getPositions() {
+				const { editor } = app.workspace.activeLeaf.view;
+				const cursorFrom = editor.posToOffset(app.workspace.getActiveViewOfType(MarkdownView)
+					.editor
+					.getCursor("from"));
+				const cursorTo = editor.posToOffset(app.workspace.getActiveViewOfType(MarkdownView)
+					.editor
+					.getCursor("to"));
+				return [cursorFrom, cursorTo];
+			}
+
+			makeYankDeco(view: EditorView, posFrom: number, posTo: number) {
+				const deco = [];
+				const yankDeco = Decoration.mark({
+					class: "yank-deco",
+					attributes: { "data-contents": "string" },
+				});
+				deco.push(yankDeco.range(posFrom, posTo));
+				console.log(deco);
+				return Decoration.set(deco);
+			}
+		},
+		{ decorations: (v) => v.decorations }
+	);
 }
 
 
@@ -26,15 +77,15 @@ export default class SmarterPasting extends Plugin {
 	pasteFunction: PasteFunction;
 	yankEventUninstaller: any;
 	uninstall = false;
+	yank: YankEvent;
 
 	async onload() {
 		if (this.app.vault.getConfig("vimMode")) {
-			this.uninstall = true;
 			const yank = new YankEvent();
 			// @ts-ignore
 			this.yankEventUninstaller = around(window.CodeMirrorAdapter?.Vim.getRegisterController(), {
 				pushText(oldMethod: any) {
-					return function(...args: any[]) {
+					return function (...args: any[]) {
 						if (args.at(1) === "yank")
 							yank.trigger("vim-yank", args.at(2));
 
@@ -43,15 +94,8 @@ export default class SmarterPasting extends Plugin {
 					};
 				}
 			});
-			this.registerEvent(
-				yank.on("vim-yank", (text) => {
-					const cursorFrom = this.app.workspace.getActiveViewOfType(MarkdownView).editor.getCursor("from");
-					const cursorTo = this.app.workspace.getActiveViewOfType(MarkdownView).editor.getCursor("to");
-					// console.log(cursorFrom, cursorTo, text);
-					return [cursorFrom, cursorTo, text];
-				}
-				)
-			);
+			this.registerEditorExtension( matchHighlighter(yank) );
+			this.uninstall = true;
 		}
 		console.log("Pasta Copinara Plugin loaded.");
 
@@ -73,7 +117,7 @@ export default class SmarterPasting extends Plugin {
 	async onunload() {
 		if (this.uninstall) 
 			this.yankEventUninstaller();
-		
+
 		console.log("Pasta Copinara Plugin unloaded.");
 	}
 
