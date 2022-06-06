@@ -9,5 +9,4 @@ main.js
 # Mac
 .DS_Store
 
-# Info for me
-Info for me.md
+.idea
