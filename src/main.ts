@@ -68,18 +68,10 @@ function matchHighlighter(evt: YankEvent, timeout: number) {
 			// }
 
 			getPositions() {
-				// @ts-expect-error, not typed
-				const { editor } = app.workspace.activeLeaf.view;
-				const cursorFrom = editor.posToOffset(
-					app.workspace
-						.getActiveViewOfType(MarkdownView)
-						.editor.getCursor('from')
-				);
-				const cursorTo = editor.posToOffset(
-					app.workspace
-						.getActiveViewOfType(MarkdownView)
-						.editor.getCursor('to')
-				);
+				const { editor } =
+					app.workspace.getActiveViewOfType(MarkdownView);
+				const cursorFrom = editor.posToOffset(editor.getCursor('from'));
+				const cursorTo = editor.posToOffset(editor.getCursor('to'));
 				return [cursorFrom, cursorTo];
 			}
 
@@ -109,7 +101,7 @@ export default class YankHighlighter extends Plugin {
 		if (this.app.vault.getConfig('vimMode')) {
 			const yank = new YankEvent();
 			this.yankEventUninstaller = around(
-				// @ts-ignore
+				// @ts-expect-error, not typed
 				window.CodeMirrorAdapter?.Vim.getRegisterController(),
 				{
 					pushText(oldMethod: any) {
