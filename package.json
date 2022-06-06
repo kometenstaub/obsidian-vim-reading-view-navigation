@@ -2,16 +2,21 @@
 	"name": "yank-highlight",
 	"version": "0.0.1",
 	"description": "Yank Highlighter for the Vim mode.",
-	"main": "main.js",
+	"main": "src/main.ts",
 	"scripts": {
-		"dev": "node esbuild.config.mjs",
-		"build": "node esbuild.config.mjs production"
+		"dev": "cross-env BUILD=dev node esbuild.mjs",
+		"build": "cross-env BUILD=production node esbuild.mjs",
+		"release": "standard-version",
+		"lint": "npx eslint src/",
+		"format": "npx prettier --write src/",
+		"css": "npx sass --watch src/styles.scss build/styles.css"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "MIT",
 	"dependencies": {
 		"@codemirror/view": "^0.19.48",
+		"css-minify": "^2.0.0",
 		"monkey-around": "https://github.com/pjeby/monkey-around"
 	},
 	"devDependencies": {
