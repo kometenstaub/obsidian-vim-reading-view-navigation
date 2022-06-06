@@ -137,7 +137,7 @@ class YankSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Yank Highligher settings" });
+		containerEl.createEl("h2", { text: "Yank Highlighter settings" });
 
 		new Setting(containerEl)
 			.setName("Highlight timeout")
