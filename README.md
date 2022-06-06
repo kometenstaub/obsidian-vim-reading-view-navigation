@@ -6,7 +6,7 @@ The highlight timeout only works if the cursor is moved after it, otherwise it s
 
 ## Installation
 
-There is no release, which means that the plugin needs to be built locally.
+The plugin can be installed manually or via BRAT. It is not in the community plugins.
 
 ## Credits
 
