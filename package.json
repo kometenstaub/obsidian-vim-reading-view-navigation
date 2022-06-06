@@ -11,6 +11,27 @@
 		"format": "npx prettier --write src/",
 		"css": "npx sass --watch src/styles.scss build/styles.css"
 	},
+	"standard-version": {
+		"t": "",
+		"types": [
+			{
+				"type": "perf",
+				"hidden": false,
+				"section": "Performance"
+			},
+			{
+				"type": "feat",
+				"hidden": false,
+				"section": "Features"
+			},
+			{
+				"type": "fix",
+				"hidden": false,
+				"section": "Bug Fixes"
+			}
+		],
+		"releaseCommitMessageFormat": "Version history diff: {{currentTag}}"
+	},
 	"keywords": [],
 	"author": "",
 	"license": "MIT",
@@ -24,9 +45,15 @@
 		"@typescript-eslint/eslint-plugin": "^5.2.0",
 		"@typescript-eslint/parser": "^5.2.0",
 		"builtin-modules": "^3.2.0",
-		"esbuild": "0.13.12",
+		"esbuild": "0.14.42",
 		"obsidian": "latest",
 		"tslib": "2.3.1",
-		"typescript": "4.4.4"
+		"typescript": "4.4.4",
+		"cross-env": "^7.0.3",
+		"css-minify": "^2.0.0",
+		"prettier": "2.5.0",
+		"process": "^0.11.10",
+		"sass": "^1.49.9",
+		"standard-version": "^9.3.1"
 	}
 }
