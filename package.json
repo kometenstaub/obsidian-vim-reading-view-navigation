@@ -37,7 +37,6 @@
 	"license": "MIT",
 	"dependencies": {
 		"@codemirror/view": "^0.19.48",
-		"css-minify": "^2.0.0",
 		"monkey-around": "https://github.com/pjeby/monkey-around"
 	},
 	"devDependencies": {
