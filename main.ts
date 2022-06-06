@@ -14,9 +14,7 @@ interface YankSettings {
 	timeout: number;
 }
 
-const DEFAULT_SETTINGS: YankSettings = {
-	timeout: 2000,
-}
+const DEFAULT_SETTINGS: YankSettings = { timeout: 2000 };
 
 class YankEvent extends Events {
 	on(name: "vim-yank", callback: (text: string) => void): EventRef;
@@ -139,18 +137,16 @@ class YankSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {
-			text: 'Yank Highligher settings',
-		});
+		containerEl.createEl("h2", { text: "Yank Highligher settings" });
 
 		new Setting(containerEl)
-			.setName('Highlight timeout')
+			.setName("Highlight timeout")
 			.setDesc(
-				'The timeout is in milliseconds.'
+				"The timeout is in milliseconds."
 			)
 			.addText((text) => {
 				text.setPlaceholder(
-					'Enter a number greater than 0. Default: 2000'
+					"Enter a number greater than 0. Default: 2000"
 				)
 					.setValue(settings.timeout.toString())
 					.onChange(async (value) => {
@@ -160,7 +156,7 @@ class YankSettingTab extends PluginSettingTab {
 							await this.plugin.saveSettings();
 						} else {
 							new Notice(
-								'Please enter an integer greater than 0.'
+								"Please enter an integer greater than 0."
 							);
 						}
 					});
