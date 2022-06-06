@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.0](https://github.com/kometenstaub/obsidian-vim-yank-highlight/compare/0.0.1...1.0.0) (2022-06-06)
+
+
+### Performance
+
+* use variable ([79b066a](https://github.com/kometenstaub/obsidian-vim-yank-highlight/commit/79b066a08329ca5a937e2a850ad71fa6216b356d))
+
 ### 0.0.1 (2022-06-06)
 
 
