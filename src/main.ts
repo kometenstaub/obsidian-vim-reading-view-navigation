@@ -1,11 +1,12 @@
 import {
+	App,
 	MarkdownView,
 	Notice,
 	Plugin,
 	PluginSettingTab,
 	Scope,
 	Setting,
-} from 'obsidian';
+} from "obsidian";
 
 interface VimScrollSetting {
 	scrollDifference: number;
