@@ -96,7 +96,7 @@ class VimScrollSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', { text: 'Yank Highlighter settings' });
+		containerEl.createEl('h2', { text: 'Vim Reading View Navigation' });
 
 		new Setting(containerEl)
 			.setName('Scroll amount')

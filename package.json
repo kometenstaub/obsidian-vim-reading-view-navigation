@@ -1,7 +1,7 @@
 {
 	"name": "vim-reading-view-navigation",
-	"version": "1.0.0",
-	"description": "Yank Highlighter for the Vim mode.",
+	"version": "0.0.0",
+	"description": "Allows scrolling in the reading view with j and k.",
 	"main": "src/main.ts",
 	"scripts": {
 		"dev": "cross-env BUILD=dev node esbuild.mjs",
@@ -30,15 +30,11 @@
 				"section": "Bug Fixes"
 			}
 		],
-		"releaseCommitMessageFormat": "Vim Yank Highlight: {{currentTag}}"
+		"releaseCommitMessageFormat": "Vim Reading View Navigation: {{currentTag}}"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "MIT",
-	"dependencies": {
-		"@codemirror/view": "^0.19.48",
-		"monkey-around": "https://github.com/pjeby/monkey-around"
-	},
 	"devDependencies": {
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "^5.2.0",
@@ -49,10 +45,8 @@
 		"tslib": "2.3.1",
 		"typescript": "4.4.4",
 		"cross-env": "^7.0.3",
-		"css-minify": "^2.0.0",
 		"prettier": "2.5.0",
 		"process": "^0.11.10",
-		"sass": "^1.49.9",
 		"standard-version": "^9.3.1"
 	}
 }
