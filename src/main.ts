@@ -1,20 +1,16 @@
+import { around } from "monkey-around";
 import {
-	EventRef,
-	Events,
+	MarkdownPreviewView,
 	MarkdownView,
 	Notice,
 	Plugin,
-	PluginSettingTab,
+	PluginSettingTab, Scope,
 	Setting,
-} from 'obsidian';
-import { around } from 'monkey-around';
-import {
-	Decoration,
-	DecorationSet,
-	EditorView,
-	ViewPlugin,
-} from '@codemirror/view';
+	View,
+	WorkspaceLeaf,
+} from "obsidian";
 
+/*
 // add type safety for the undocumented methods
 declare module 'obsidian' {
 	interface Vault {
@@ -22,129 +18,127 @@ declare module 'obsidian' {
 		getConfig: (config: string) => boolean;
 	}
 }
+*/
 
-interface YankSettings {
-	timeout: number;
+interface VimScrollSetting {
+	scrollDifference: number;
 }
 
-const DEFAULT_SETTINGS: YankSettings = { timeout: 2000 };
+const DEFAULT_SETTINGS: VimScrollSetting = { scrollDifference: 1 };
 
-class YankEvent extends Events {
-	on(name: 'vim-yank', callback: (text: string) => void): EventRef;
-	on(name: string, callback: (...data: any) => any, ctx?: any): EventRef {
-		return super.on(name, callback, ctx);
-	}
-}
 
-// cm6 view plugin
-function matchHighlighter(evt: YankEvent, timeout: number) {
-	return ViewPlugin.fromClass(
-		class {
-			decorations: DecorationSet;
-			// highlightTime: number;
-
-			constructor(view: EditorView) {
-				this.decorations = Decoration.none;
-				evt.on('vim-yank', (text) => {
-					const [cursorFrom, cursorTo] = this.getPositions();
-					this.decorations = this.makeYankDeco(
-						view,
-						cursorFrom,
-						cursorTo
-					);
-					// timeout needs to be configured in settings
-					window.setTimeout(
-						() => (this.decorations = Decoration.none),
-						timeout
-					);
-				});
-			}
-			// update unnecessary because highlight gets removed by timeout; otherwise it would never apply the classes
-			// update(update: ViewUpdate) {
-			//	if (update.selectionSet || update.docChanged || update.viewportChanged) {
-			//		this.decorations = Decoration.none;
-			//		// this.makeYankDeco(update.view);
-			//
-			// }
-
-			getPositions() {
-				const { editor } =
-					app.workspace.getActiveViewOfType(MarkdownView);
-				const cursorFrom = editor.posToOffset(editor.getCursor('from'));
-				const cursorTo = editor.posToOffset(editor.getCursor('to'));
-				return [cursorFrom, cursorTo];
-			}
-
-			makeYankDeco(view: EditorView, posFrom: number, posTo: number) {
-				const deco = [];
-				const yankDeco = Decoration.mark({
-					class: 'yank-deco',
-					attributes: { 'data-contents': 'string' },
-				});
-				deco.push(yankDeco.range(posFrom, posTo));
-				return Decoration.set(deco);
-			}
-		},
-		{ decorations: (v) => v.decorations }
-	);
-}
-
-export default class YankHighlighter extends Plugin {
-	yankEventUninstaller: any;
+export default class VimReadingViewNavigation extends Plugin {
+	//vimNavUninstaller: any;
 	uninstall = false;
-	yank: YankEvent;
-	settings: YankSettings;
+	settings: VimScrollSetting;
 
 	async onload() {
-		await this.loadSettings();
-		this.addSettingTab(new YankSettingTab(this.app, this));
-		if (this.app.vault.getConfig('vimMode')) {
-			const yank = new YankEvent();
-			this.yankEventUninstaller = around(
-				// @ts-expect-error, not typed
-				window.CodeMirrorAdapter?.Vim.getRegisterController(),
-				{
-					pushText(oldMethod: any) {
-						return function (...args: any[]) {
-							if (args.at(1) === 'yank')
-								yank.trigger('vim-yank', args.at(2));
 
-							const result =
-								oldMethod && oldMethod.apply(this, args);
-							return result;
-						};
-					},
+		await this.loadSettings();
+		this.addSettingTab(new VimScrollSettingTab(this.app, this));
+
+		this.registerEvent(app.workspace.on("layout-change", () => {
+			const leaf = app.workspace.getActiveViewOfType(MarkdownView)
+			const navScope = new Scope(app.scope)
+			const downScroll = navScope.register([], "j", (evt: KeyboardEvent) => {
+				if (leaf.getMode() === 'preview') {
+					this.scrollDown();
+					return false;
 				}
-			);
-			this.registerEditorExtension(
-				matchHighlighter(yank, this.settings.timeout)
-			);
-			this.uninstall = true;
-		}
-		console.log('Yank Highlight plugin loaded.');
+				return true
+			})
+			const upScroll = navScope.register([], "k", (evt: KeyboardEvent) => {
+				if (leaf.getMode() === 'preview') {
+					this.scrollUp();
+					return false;
+				}
+				return true
+			})
+			app.keymap.pushScope(navScope)
+
+		}))
+
+/*
+			this.app.workspace.onLayoutReady(() => {
+
+				this.vimNavUninstaller = around(
+					View.prototype,
+					{
+						onOpen(oldMethod: any) {
+							return function (...args: any[]) {
+								//const { view } = args.at(0)
+								console.log(args)
+								//const { register } = view.leaf.workspace.scope
+								const view = app.workspace.getActiveViewOfType(MarkdownView)
+								console.log(view)
+								const { register } = view.leaf.workspace.scope
+								console.log(register)
+								//const { register } = vi
+								register([], "j", (evt: KeyboardEvent) => {
+									scrollDown();
+									return false;
+								})
+								register([], "k", (evt: KeyboardEvent) => {
+									scrollUp();
+									return false;
+								})
+
+								const result =
+									oldMethod.apply(this, args);
+								return result;
+							};
+						},
+					}
+				);
+				this.uninstall = true;
+			})
+*/
+		console.log('Vim Reading View Navigation loaded.');
 	}
 	async onunload() {
-		if (this.uninstall) this.yankEventUninstaller();
+/*
+		if (this.uninstall) this.vimNavUninstaller();
+*/
 
-		console.log('Yank Highlight plugin unloaded.');
-	}
-	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			await this.loadData()
-		);
+		console.log('Vim Reading View Navigation unloaded.');
 	}
 
-	async saveSettings() {
-		await this.saveData(this.settings);
+	getScroll(): [leaf: MarkdownView, scroll: number] | null{
+		const leaf = app.workspace.getActiveViewOfType(MarkdownView)
+		if (leaf.getMode() === 'preview') {
+			return [leaf, leaf.previewMode.getScroll()]
+		} else {
+			return null
+		}
 	}
+
+	scrollDown(){
+		const [leaf, scroll] = this.getScroll()
+		leaf.previewMode.applyScroll(scroll + this.settings.scrollDifference)
+	}
+
+	scrollUp(){
+		const [leaf, scroll] = this.getScroll()
+		leaf.previewMode.applyScroll(scroll - this.settings.scrollDifference)
+	}
+
+		async loadSettings() {
+			this.settings = Object.assign(
+				{},
+				DEFAULT_SETTINGS,
+				await this.loadData()
+			);
+		}
+
+		async saveSettings() {
+			await this.saveData(this.settings);
+		}
 }
 
-class YankSettingTab extends PluginSettingTab {
-	plugin: YankHighlighter;
+class VimScrollSettingTab extends PluginSettingTab {
+	plugin: VimReadingViewNavigation;
 
-	constructor(app: App, plugin: SKOSPlugin) {
+	constructor(app: App, plugin: VimReadingViewNavigation) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -178,4 +172,13 @@ class YankSettingTab extends PluginSettingTab {
 					});
 			});
 	}
+}
+
+class Scroll {
+	plugin: VimReadingViewNavigation;
+
+	constructor(plugin: VimReadingViewNavigation) {
+		this.plugin = plugin;
+	}
+
 }

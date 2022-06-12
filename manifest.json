@@ -1,9 +1,9 @@
 {
-	"id": "yank-highlight",
-	"name": "Vim Yank Highlighter",
-	"version": "1.0.0",
+	"id": "vim-reading-view-navigation",
+	"name": "Vim Reading View Navigation",
+	"version": "0.0.0",
 	"minAppVersion": "0.14.15",
-	"description": "Yank Highlighter for the Vim mode.",
+	"description": "Vim Reading view navigation",
 	"author": "kometenstaub",
 	"isDesktopOnly": false
 }

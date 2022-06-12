@@ -1,8 +1,4 @@
-# Obsidian Vim Yank Highlighter
-
-## Known limitations
-
-The highlight timeout only works if the cursor is moved after it, otherwise it stays highlighted.
+# Obsidian Vim Reading View Navigation
 
 ## Installation
 

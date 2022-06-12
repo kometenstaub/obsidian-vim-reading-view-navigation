@@ -1,5 +1,5 @@
 {
-	"name": "yank-highlight",
+	"name": "vim-reading-view-navigation",
 	"version": "1.0.0",
 	"description": "Yank Highlighter for the Vim mode.",
 	"main": "src/main.ts",
