@@ -6,7 +6,7 @@ import {
 	PluginSettingTab,
 	Scope,
 	Setting,
-} from "obsidian";
+} from 'obsidian';
 
 interface VimScrollSetting {
 	scrollDifference: number;
@@ -23,34 +23,40 @@ export default class VimReadingViewNavigation extends Plugin {
 		this.addSettingTab(new VimScrollSettingTab(this.app, this));
 
 		this.navScope = new Scope(app.scope);
-		const downScroll = this.navScope.register(
-			[],
-			'j',
-			(evt: KeyboardEvent) => {
-				const leaf = app.workspace.getActiveViewOfType(MarkdownView);
-				if (leaf.getMode() === 'preview') {
-					this.scrollDown(leaf);
-					return false;
-				}
-				return true;
+		this.navScope.register([], 'j', (evt: KeyboardEvent) => {
+			const leaf = app.workspace.getActiveViewOfType(MarkdownView);
+			if (
+				leaf.getMode() === 'preview' &&
+				this.displayValue(leaf) === 'none'
+			) {
+				this.scrollDown(leaf);
+				return false;
 			}
-		);
-		const upScroll = this.navScope.register(
-			[],
-			'k',
-			(evt: KeyboardEvent) => {
-				const leaf = app.workspace.getActiveViewOfType(MarkdownView);
-				if (leaf.getMode() === 'preview') {
-					this.scrollUp(leaf);
-					return false;
-				}
-				return true;
+			return true;
+		});
+		this.navScope.register([], 'k', (evt: KeyboardEvent) => {
+			const leaf = app.workspace.getActiveViewOfType(MarkdownView);
+			if (
+				leaf.getMode() === 'preview' &&
+				this.displayValue(leaf) === 'none'
+			) {
+				this.scrollUp(leaf);
+				return false;
 			}
-		);
+			return true;
+		});
 		app.keymap.pushScope(this.navScope);
 
 		console.log('Vim Reading View Navigation loaded.');
 	}
+
+	displayValue(leaf: MarkdownView): string {
+		return leaf.contentEl
+			.getElementsByClassName('markdown-reading-view')[0]
+			.getElementsByClassName('document-search-container')[0]
+			.getCssPropertyValue('display');
+	}
+
 	async onunload() {
 		app.keymap.popScope(this.navScope);
 		console.log('Vim Reading View Navigation unloaded.');
