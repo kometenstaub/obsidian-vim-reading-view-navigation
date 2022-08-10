@@ -14,65 +14,45 @@ interface VimScrollSetting {
 
 const DEFAULT_SETTINGS: VimScrollSetting = { scrollDifference: 1 };
 
-export default class VimReadingViewNavigation extends Plugin {
-    settings: VimScrollSetting;
-    navScope: Scope;
-    jumpTopEvent: (event: KeyboardEvent) => void;
-
-    async onload() {
-        await this.loadSettings();
-        this.addSettingTab(new VimScrollSettingTab(this.app, this));
-        this.navScope = new Scope(app.scope);
-
+const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
+        const self = plugin;
         // Scroll down
-        this.navScope.register([], 'j', (evt: KeyboardEvent) => {
+        scope.register([], 'j', (evt: KeyboardEvent) => {
             const leaf = app.workspace.getActiveViewOfType(MarkdownView);
-            keyArray = this.resetJumpTop();
+            self.keyArray = self.resetJumpTop();
             if (
                 leaf.getMode() === 'preview' &&
-                this.displayValue(leaf) === 'none'
+                self.displayValue(leaf) === 'none'
             ) {
-                this.scrollDown(leaf);
+                self.scrollDown(leaf);
                 return false;
             }
             return true;
         });
 
         // Scroll up
-        this.navScope.register([], 'k', (evt: KeyboardEvent) => {
+        scope.register([], 'k', (evt: KeyboardEvent) => {
             const leaf = app.workspace.getActiveViewOfType(MarkdownView);
-            keyArray = this.resetJumpTop();
+            self.keyArray = self.resetJumpTop();
             if (
                 leaf.getMode() === 'preview' &&
-                this.displayValue(leaf) === 'none'
+                self.displayValue(leaf) === 'none'
             ) {
-                this.scrollUp(leaf);
+                self.scrollUp(leaf);
                 return false;
             }
             return true;
         });
-
-        // Jump to top
-        let keyArray: string[] = [];
-        this.jumpTopEvent = (event: KeyboardEvent) => {
-            if (event.key != 'g') {
-                keyArray = this.resetJumpTop();
-            } else {
-                const leaf = app.workspace.getActiveViewOfType(MarkdownView);
-                leaf.previewMode.applyScroll(0);
-                keyArray = this.resetJumpTop();
-            }
-        }
-        this.navScope.register([], 'g', (evt: KeyboardEvent) => {
+        scope.register([], 'g', (evt: KeyboardEvent) => {
             const leaf = app.workspace.getActiveViewOfType(MarkdownView);
             if (
                 leaf.getMode() === 'preview' &&
-                this.displayValue(leaf) === 'none' &&
+                self.displayValue(leaf) === 'none' &&
                 evt.key === 'g'
             ) {
-                if (keyArray.length === 0) {
-                    addEventListener('keydown', this.jumpTopEvent);
-                    keyArray.push(evt.key);
+                if (self.keyArray.length === 0) {
+                    addEventListener('keydown', self.jumpTopEvent);
+                    self.keyArray.push(evt.key);
                     return false;
                 }
             }
@@ -82,33 +62,62 @@ export default class VimReadingViewNavigation extends Plugin {
         // Jump to bottom
         //  1st evt registers g when CapsLock is on
         //  2nd evt registers Shift+g
-        this.navScope.register([], 'g', (evt: KeyboardEvent) => {
+        scope.register([], 'g', (evt: KeyboardEvent) => {
             const leaf = app.workspace.getActiveViewOfType(MarkdownView);
             if (
                 leaf.getMode() === 'preview' &&
-                this.displayValue(leaf) === 'none' &&
+                self.displayValue(leaf) === 'none' &&
                 evt.key === 'G'
             ) {
-                keyArray = this.resetJumpTop();
-                this.jumpBottom(leaf);
+                self.keyArray = self.resetJumpTop();
+                self.jumpBottom(leaf);
                 return false;
             }
             return true;
         });
-        this.navScope.register(['Shift'], 'g', (evt: KeyboardEvent) => {
+        scope.register(['Shift'], 'g', (evt: KeyboardEvent) => {
             const leaf = app.workspace.getActiveViewOfType(MarkdownView);
-            keyArray = this.resetJumpTop();
+            self.keyArray = self.resetJumpTop();
             if (
                 leaf.getMode() === 'preview' &&
-                this.displayValue(leaf) === 'none'
+                self.displayValue(leaf) === 'none'
             ) {
-                this.jumpBottom(leaf);
+                self.jumpBottom(leaf);
                 return false;
             }
             return true;
         });
+}
+
+export default class VimReadingViewNavigation extends Plugin {
+    settings: VimScrollSetting;
+    navScope: Scope;
+    jumpTopEvent: (event: KeyboardEvent) => void;
+    keyArray: string[] = [];
+
+    async onload() {
+        await this.loadSettings();
+        this.addSettingTab(new VimScrollSettingTab(this.app, this));
+        this.navScope = new Scope(app.scope);
+
+        // Jump to top
+        this.jumpTopEvent = (event: KeyboardEvent) => {
+            if (event.key != 'g') {
+                this.keyArray = this.resetJumpTop();
+            } else {
+                const leaf = app.workspace.getActiveViewOfType(MarkdownView);
+                leaf.previewMode.applyScroll(0);
+                this.keyArray = this.resetJumpTop();
+            }
+        }
+
+        registerScopes(this.navScope, this);
 
         app.keymap.pushScope(this.navScope);
+
+        // TODO: implement MutationObserver for in document search
+        // if it shows the search element as active, pop the scope and call it again with the leaf scope
+
         console.log('Vim Reading View Navigation loaded.');
     }
 
