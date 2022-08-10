@@ -45,6 +45,41 @@ export default class VimReadingViewNavigation extends Plugin {
 			}
 			return true;
 		});
+        this.navScope.register([], 'g', (evt: KeyboardEvent) => {
+            const leaf = app.workspace.getActiveViewOfType(MarkdownView);
+			if (
+				leaf.getMode() === 'preview' &&
+				this.displayValue(leaf) === 'none' &&
+                evt.key === 'g'
+			) {
+				this.scrollTop(leaf);
+				return false;
+			}
+			return true;
+		});
+		this.navScope.register([], 'g', (evt: KeyboardEvent) => {
+			const leaf = app.workspace.getActiveViewOfType(MarkdownView);
+			if (
+				leaf.getMode() === 'preview' &&
+				this.displayValue(leaf) === 'none' &&
+                evt.key === 'G'
+			) {
+				this.scrollBottom(leaf);
+				return false;
+			}
+			return true;
+		});
+		this.navScope.register(['Shift'], 'g', (evt: KeyboardEvent) => {
+			const leaf = app.workspace.getActiveViewOfType(MarkdownView);
+			if (
+				leaf.getMode() === 'preview' &&
+				this.displayValue(leaf) === 'none'
+			) {
+				this.scrollBottom(leaf);
+				return false;
+			}
+			return true;
+		});
 		app.keymap.pushScope(this.navScope);
 
 		console.log('Vim Reading View Navigation loaded.');
@@ -75,6 +110,22 @@ export default class VimReadingViewNavigation extends Plugin {
 		const scroll = this.getScroll(leaf);
 		leaf.previewMode.applyScroll(scroll - this.settings.scrollDifference);
 	}
+
+    scrollTop(leaf: MarkdownView) {
+        leaf.previewMode.applyScroll(0);
+	}
+
+    scrollBottom(leaf: MarkdownView) {
+        let scroll = this.getScroll(leaf);
+        leaf.previewMode.applyScroll(scroll + this.settings.scrollDifference);
+        let newScroll = this.getScroll(leaf);
+
+        while (newScroll != scroll) {
+            scroll = this.getScroll(leaf);
+            leaf.previewMode.applyScroll(scroll + this.settings.scrollDifference);
+            newScroll = this.getScroll(leaf);
+        }
+    }
 
 	async loadSettings() {
 		this.settings = Object.assign(
