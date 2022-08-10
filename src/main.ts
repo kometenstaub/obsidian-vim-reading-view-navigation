@@ -135,7 +135,7 @@ export default class VimReadingViewNavigation extends Plugin {
         let newScroll = this.getScroll(leaf);
 
         while (newScroll != scroll) {
-            scroll = this.getScroll(leaf);
+            scroll = newScroll;
             leaf.previewMode.applyScroll(scroll + this.settings.scrollDifference);
             newScroll = this.getScroll(leaf);
         }
