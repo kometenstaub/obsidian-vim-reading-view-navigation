@@ -69,7 +69,7 @@ export default class VimReadingViewNavigation extends Plugin {
                 }
             }
         }
-        addEventListener('keydown', jumpTopEvent, { capture: true });
+        addEventListener('keydown', jumpTopEvent);
 
         // Jump to bottom
         //  1st evt registers g when CapsLock is on
@@ -111,7 +111,7 @@ export default class VimReadingViewNavigation extends Plugin {
 
     async onunload() {
         app.keymap.popScope(this.navScope);
-        removeEventListener('keydown', this.jumpTopEvent, { capture: true });
+        removeEventListener('keydown', this.jumpTopEvent);
         console.log('Vim Reading View Navigation unloaded.');
     }
 
