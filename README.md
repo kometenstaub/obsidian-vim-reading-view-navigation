@@ -6,7 +6,7 @@ It also lets you navigate with <kbd>gg</kbd> and <kbd>G</kbd> to the top or bott
 
 ## Bugs
 
-The search in Editing and Reading view cannot be closed with <kbd>Esc</kbd>.
+The search in Editing and Reading view cannot be closed with <kbd>Esc</kbd>. This also applies to the other shortcuts associated with search. 
 
 ## Configuration
 
