@@ -17,6 +17,7 @@ const DEFAULT_SETTINGS: VimScrollSetting = { scrollDifference: 1 };
 export default class VimReadingViewNavigation extends Plugin {
     settings: VimScrollSetting;
     navScope: Scope;
+    jumpTopEvent: (event: KeyboardEvent) => void;
 
     async onload() {
         await this.loadSettings();
@@ -53,7 +54,7 @@ export default class VimReadingViewNavigation extends Plugin {
 
         // Jump to top
         let keyArray: string[] = [];
-        const jumpTopEvent = (event: KeyboardEvent) => {
+        this.jumpTopEvent = (event: KeyboardEvent) => {
             if (event.key != 'g') {
                 keyArray = this.resetJumpTop();
             } else {
@@ -70,7 +71,7 @@ export default class VimReadingViewNavigation extends Plugin {
                 evt.key === 'g'
             ) {
                 if (keyArray.length === 0) {
-                    addEventListener('keydown', jumpTopEvent);
+                    addEventListener('keydown', this.jumpTopEvent);
                     keyArray.push(evt.key);
                     return false;
                 }
@@ -145,12 +146,12 @@ export default class VimReadingViewNavigation extends Plugin {
 
     jumpBottom(leaf: MarkdownView) {
         let scroll = this.getScroll(leaf);
-        leaf.previewMode.applyScroll(scroll + this.settings.scrollDifference);
+        leaf.previewMode.applyScroll(scroll + 5);
         let newScroll = this.getScroll(leaf);
 
         while (newScroll != scroll) {
             scroll = newScroll;
-            leaf.previewMode.applyScroll(scroll + this.settings.scrollDifference);
+            leaf.previewMode.applyScroll(scroll + 5);
             newScroll = this.getScroll(leaf);
         }
     }
