@@ -86,8 +86,8 @@ export default class VimReadingViewNavigation extends Plugin {
 	navScope: Scope;
 	jumpTopEvent: (event: KeyboardEvent) => void;
 	keyArray: string[] = [];
-    oldObserver: MutationObserver;
-    observers: MutationObserver[] = [];
+	oldObserver: MutationObserver;
+	observers: MutationObserver[] = [];
 
 	async onload() {
 		await this.loadSettings();
@@ -108,61 +108,77 @@ export default class VimReadingViewNavigation extends Plugin {
 		registerScopes(this.navScope, this);
 		app.keymap.pushScope(this.navScope);
 
-        app.workspace.on('active-leaf-change', (leaf) => {
-            if (leaf.view.getViewType() === 'markdown'){
-                if (this.oldObserver) {
-                    this.oldObserver.disconnect();
-                    this.observers.remove(this.oldObserver);
-                };
-                this.oldObserver = new MutationObserver(
-                        (mutations: MutationRecord[]) => {
-                            for (let j = 0; j < mutations.length; j++) {
-                                const el = mutations[j];
-                                const nodes = el.addedNodes
-                                for (let i = 0; i < nodes.length; i++) {
-                                    const node = nodes[i];
-                                    if (node.classList?.value === 'document-search-container') {
-                                        app.keymap.popScope(this.navScope);
-                                        const button = leaf.view.containerEl.getElementsByClassName('document-search-close-button')[0]
-                                        if (!button) return;
-                                        button.addEventListener('click', () => {
-                                            app.keymap.pushScope(this.navScope);
-                                        }, {capture: false, once: true})
-                                        activeWindow.addEventListener('keydown', listener, {capture: false})
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                    )
-                this.oldObserver.observe(leaf.view.containerEl, {childList: true, subtree: true});
-                // disconnect all later
-                this.observers.push(this.oldObserver);
-            };
+		app.workspace.on('active-leaf-change', (leaf) => {
+			if (leaf.view.getViewType() === 'markdown') {
+				if (this.oldObserver) {
+					this.oldObserver.disconnect();
+					this.observers.remove(this.oldObserver);
+				}
+				this.oldObserver = new MutationObserver(
+					(mutations: MutationRecord[]) => {
+						for (let j = 0; j < mutations.length; j++) {
+							const el = mutations[j];
+							const nodes = el.addedNodes;
+							for (let i = 0; i < nodes.length; i++) {
+								const node = nodes[i];
+								if (
+									node.classList?.value ===
+									'document-search-container'
+								) {
+									app.keymap.popScope(this.navScope);
+									const button =
+										leaf.view.containerEl.getElementsByClassName(
+											'document-search-close-button'
+										)[0];
+									if (!button) return;
+									button.addEventListener(
+										'click',
+										() => {
+											app.keymap.pushScope(this.navScope);
+										},
+										{ capture: false, once: true }
+									);
+									activeWindow.addEventListener(
+										'keydown',
+										listener,
+										{ capture: false }
+									);
+									return;
+								}
+							}
+						}
+					}
+				);
+				this.oldObserver.observe(leaf.view.containerEl, {
+					childList: true,
+					subtree: true,
+				});
+				// disconnect all later
+				this.observers.push(this.oldObserver);
+			}
+		});
 
-            }
-        )
-
-       const listener  = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                app.keymap.pushScope(this.navScope);
-                activeWindow.removeEventListener('keydown', listener, {capture: false})
-            }
-       } 
+		const listener = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				app.keymap.pushScope(this.navScope);
+				activeWindow.removeEventListener('keydown', listener, {
+					capture: false,
+				});
+			}
+		};
 		console.log('Vim Reading View Navigation loaded.');
 	}
 
-
-    // Only needed when settings opened while search open and Esc didn't close it and 
-    // user wants to continue searching.
-    // As long as the search is visible and the scope is still active because Esc didn't work
-    // remove the scope.
+	// Only needed when settings opened while search open and Esc didn't close it and
+	// user wants to continue searching.
+	// As long as the search is visible and the scope is still active because Esc didn't work
+	// remove the scope.
 	displayValue(leaf: MarkdownView): boolean {
 		const exists = leaf.contentEl.getElementsByClassName(
 			'document-search-container'
 		)[0];
 		if (exists) {
-            app.keymap.popScope(this.navScope)
+			app.keymap.popScope(this.navScope);
 			return true;
 		} else {
 			return false;
@@ -172,10 +188,10 @@ export default class VimReadingViewNavigation extends Plugin {
 	async onunload() {
 		app.keymap.popScope(this.navScope);
 		removeEventListener('keydown', this.jumpTopEvent);
-        // at this point there should only be one
-        for (const obs of this.observers) {
-            obs.disconnect();
-        }
+		// at this point there should only be one
+		for (const obs of this.observers) {
+			obs.disconnect();
+		}
 		console.log('Vim Reading View Navigation unloaded.');
 	}
 
