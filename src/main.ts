@@ -154,11 +154,16 @@ export default class VimReadingViewNavigation extends Plugin {
 	}
 
 
+    // Only needed when settings opened while search open and Esc didn't close it and 
+    // user wants to continue searching.
+    // As long as the search is visible and the scope is still active because Esc didn't work
+    // remove the scope.
 	displayValue(leaf: MarkdownView): boolean {
 		const exists = leaf.contentEl.getElementsByClassName(
 			'document-search-container'
 		)[0];
 		if (exists) {
+            app.keymap.popScope(this.navScope)
 			return true;
 		} else {
 			return false;
