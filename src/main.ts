@@ -8,6 +8,7 @@ import {
 	Setting,
 	WorkspaceLeaf,
 } from 'obsidian';
+import {around} from 'monkey-around';
 
 interface VimScrollSetting {
 	scrollDifference: number;
@@ -86,6 +87,7 @@ export default class VimReadingViewNavigation extends Plugin {
 	navScope: Scope;
 	jumpTopEvent: (event: KeyboardEvent) => void;
 	keyArray: string[] = [];
+    oldObserver: MutationObserver;
 
 	async onload() {
 		await this.loadSettings();
@@ -106,8 +108,50 @@ export default class VimReadingViewNavigation extends Plugin {
 		registerScopes(this.navScope, this);
 		app.keymap.pushScope(this.navScope);
 
+        app.workspace.on('active-leaf-change', (leaf) => {
+            if (leaf.view.getViewType() === 'markdown'){
+                if (this.oldObserver) {
+                    this.oldObserver.disconnect()
+                };
+                this.oldObserver = new MutationObserver(
+                        (mutations: MutationRecord[]) => {
+                            for (let j = 0; j < mutations.length; j++) {
+                                const el = mutations[j];
+                                const nodes = el.addedNodes
+                                for (let i = 0; i < nodes.length; i++) {
+                                    const node = nodes[i];
+                                    if (node.classList?.value === 'document-search-container') {
+                                        app.keymap.popScope(this.navScope);
+                                        const button = leaf.view.containerEl.getElementsByClassName('document-search-close-button')[0]
+                                        console.log(button)
+                                        if (!button) return;
+                                        button.addEventListener('click', () => {
+                                            app.keymap.pushScope(this.navScope);
+                                        }, {capture: false, once: true})
+                                        leaf.view.containerEl.addEventListener('keydown', this.listener, {capture: true})
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    )
+                this.oldObserver.observe(leaf.view.containerEl, {childList: true, subtree: true});
+            };
+
+            }
+        )
+
 		console.log('Vim Reading View Navigation loaded.');
 	}
+
+    listener(event: KeyboardEvent) {
+        return () => {
+            if (event.key === 'Esc') {
+                console.log(event)
+                app.keymap.pushScope(this.navScope);
+            }
+        }
+    }
 
 	displayValue(leaf: MarkdownView): boolean {
 		const exists = leaf.contentEl.getElementsByClassName(
