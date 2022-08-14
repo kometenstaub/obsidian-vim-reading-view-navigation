@@ -88,6 +88,7 @@ export default class VimReadingViewNavigation extends Plugin {
 	jumpTopEvent: (event: KeyboardEvent) => void;
 	keyArray: string[] = [];
     oldObserver: MutationObserver;
+    observers: MutationObserver[] = [];
 
 	async onload() {
 		await this.loadSettings();
@@ -111,7 +112,8 @@ export default class VimReadingViewNavigation extends Plugin {
         app.workspace.on('active-leaf-change', (leaf) => {
             if (leaf.view.getViewType() === 'markdown'){
                 if (this.oldObserver) {
-                    this.oldObserver.disconnect()
+                    this.oldObserver.disconnect();
+                    this.observers.remove(this.oldObserver);
                 };
                 this.oldObserver = new MutationObserver(
                         (mutations: MutationRecord[]) => {
@@ -123,12 +125,10 @@ export default class VimReadingViewNavigation extends Plugin {
                                     if (node.classList?.value === 'document-search-container') {
                                         app.keymap.popScope(this.navScope);
                                         const button = leaf.view.containerEl.getElementsByClassName('document-search-close-button')[0]
-                                        console.log(button)
                                         if (!button) return;
                                         button.addEventListener('click', () => {
                                             app.keymap.pushScope(this.navScope);
                                         }, {capture: false, once: true})
-                                        // activeWindow.addEventListener('keydown', (event) => {console.log(event)}, {capture: true})
                                         activeWindow.addEventListener('keydown', listener, {capture: false})
                                         return;
                                     }
@@ -137,13 +137,14 @@ export default class VimReadingViewNavigation extends Plugin {
                         }
                     )
                 this.oldObserver.observe(leaf.view.containerEl, {childList: true, subtree: true});
+                // disconnect all later
+                this.observers.push(this.oldObserver);
             };
 
             }
         )
 
        const listener  = (event: KeyboardEvent) => {
-            console.log(event)
             if (event.key === 'Escape') {
                 app.keymap.pushScope(this.navScope);
                 activeWindow.removeEventListener('keydown', listener, {capture: false})
@@ -167,6 +168,10 @@ export default class VimReadingViewNavigation extends Plugin {
 	async onunload() {
 		app.keymap.popScope(this.navScope);
 		removeEventListener('keydown', this.jumpTopEvent);
+        // at this point there should only be one
+        for (const obs of this.observers) {
+            obs.disconnect();
+        }
 		console.log('Vim Reading View Navigation unloaded.');
 	}
 
