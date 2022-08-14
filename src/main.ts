@@ -128,7 +128,8 @@ export default class VimReadingViewNavigation extends Plugin {
                                         button.addEventListener('click', () => {
                                             app.keymap.pushScope(this.navScope);
                                         }, {capture: false, once: true})
-                                        leaf.view.containerEl.addEventListener('keydown', this.listener, {capture: true})
+                                        // activeWindow.addEventListener('keydown', (event) => {console.log(event)}, {capture: true})
+                                        activeWindow.addEventListener('keydown', listener, {capture: false})
                                         return;
                                     }
                                 }
@@ -141,17 +142,16 @@ export default class VimReadingViewNavigation extends Plugin {
             }
         )
 
+       const listener  = (event: KeyboardEvent) => {
+            console.log(event)
+            if (event.key === 'Escape') {
+                app.keymap.pushScope(this.navScope);
+                activeWindow.removeEventListener('keydown', listener, {capture: false})
+            }
+       } 
 		console.log('Vim Reading View Navigation loaded.');
 	}
 
-    listener(event: KeyboardEvent) {
-        return () => {
-            if (event.key === 'Esc') {
-                console.log(event)
-                app.keymap.pushScope(this.navScope);
-            }
-        }
-    }
 
 	displayValue(leaf: MarkdownView): boolean {
 		const exists = leaf.contentEl.getElementsByClassName(
