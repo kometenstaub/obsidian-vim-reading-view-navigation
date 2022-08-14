@@ -8,7 +8,6 @@ import {
 	Setting,
 	WorkspaceLeaf,
 } from 'obsidian';
-import {around} from 'monkey-around';
 
 interface VimScrollSetting {
 	scrollDifference: number;
