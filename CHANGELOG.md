@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.2](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.1.1...1.1.2) (2022-08-14)
+
+
+### Bug Fixes
+
+* disconnect all MutationObservers, remove logs ([ff5df74](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/ff5df74b445214c140a7a5763c3ff075553a516f))
+* Esc listener ([8bf47a9](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/8bf47a951a47e48ef40162c830f4a20dc49fb68b))
+* search mostly works ([d7a66c8](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/d7a66c820d9f7b94863f1f8891475e59df93cbde))
+
 ### [1.1.1](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.1.0...1.1.1) (2022-08-11)
 
 
