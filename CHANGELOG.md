@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.1.2...1.2.0) (2022-08-15)
+
+
+### Features
+
+* sync scroll state with edit mode ([8ce3d2c](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/8ce3d2c35201111574eb281ac75a79da65251e21))
+
 ### [1.1.2](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.1.1...1.1.2) (2022-08-14)
 
 
