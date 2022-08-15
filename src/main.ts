@@ -218,18 +218,21 @@ export default class VimReadingViewNavigation extends Plugin {
 
 	jumpBottom(leaf: MarkdownView) {
 		let scroll = this.getScroll(leaf);
-		this.doScroll(leaf, scroll + 1);
+		this.doScroll(leaf, scroll + 5);
 		let newScroll = this.getScroll(leaf);
 
 		while (newScroll != scroll) {
 			scroll = newScroll;
-			this.doScroll(leaf, scroll + 1);
+			// 5 throws an error when switching to edit mode
+			// It goes one line too far
+			// A lower number is too slow though for large documents
+			this.doScroll(leaf, scroll + 4);
 			newScroll = this.getScroll(leaf);
 		}
 	}
 
 	doScroll(leaf: MarkdownView, num: number) {
-        leaf.setEphemeralState({scroll: num})
+		leaf.setEphemeralState({ scroll: num });
 	}
 
 	async loadSettings() {
