@@ -99,7 +99,7 @@ export default class VimReadingViewNavigation extends Plugin {
 				this.keyArray = this.resetJumpTop();
 			} else {
 				const leaf = app.workspace.getActiveViewOfType(MarkdownView);
-				leaf.previewMode.applyScroll(0);
+				this.doScroll(leaf, 0);
 				this.keyArray = this.resetJumpTop();
 			}
 		};
@@ -206,24 +206,30 @@ export default class VimReadingViewNavigation extends Plugin {
 
 	scrollDown(leaf: MarkdownView) {
 		const scroll = this.getScroll(leaf);
-		leaf.previewMode.applyScroll(scroll + this.settings.scrollDifference);
+		const num = scroll + this.settings.scrollDifference;
+		this.doScroll(leaf, num);
 	}
 
 	scrollUp(leaf: MarkdownView) {
 		const scroll = this.getScroll(leaf);
-		leaf.previewMode.applyScroll(scroll - this.settings.scrollDifference);
+		const num = scroll - this.settings.scrollDifference;
+		this.doScroll(leaf, num);
 	}
 
 	jumpBottom(leaf: MarkdownView) {
 		let scroll = this.getScroll(leaf);
-		leaf.previewMode.applyScroll(scroll + 5);
+		this.doScroll(leaf, scroll + 1);
 		let newScroll = this.getScroll(leaf);
 
 		while (newScroll != scroll) {
 			scroll = newScroll;
-			leaf.previewMode.applyScroll(scroll + 5);
+			this.doScroll(leaf, scroll + 1);
 			newScroll = this.getScroll(leaf);
 		}
+	}
+
+	doScroll(leaf: MarkdownView, num: number) {
+        leaf.setEphemeralState({scroll: num})
 	}
 
 	async loadSettings() {
