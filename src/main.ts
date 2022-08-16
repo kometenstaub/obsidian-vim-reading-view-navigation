@@ -223,12 +223,12 @@ export default class VimReadingViewNavigation extends Plugin {
 
 		while (newScroll != scroll) {
 			scroll = newScroll;
-			// 5 throws an error when switching to edit mode
-			// It goes one line too far
-			// A lower number is too slow though for large documents
-			this.doScroll(leaf, scroll + 4);
+			this.doScroll(leaf, scroll + 5);
 			newScroll = this.getScroll(leaf);
 		}
+
+        // workaround for Obsidian bug
+        this.doScroll(leaf, scroll - 1)
 	}
 
 	doScroll(leaf: MarkdownView, num: number) {
