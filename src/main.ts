@@ -226,9 +226,6 @@ export default class VimReadingViewNavigation extends Plugin {
 			this.doScroll(leaf, scroll + 5);
 			newScroll = this.getScroll(leaf);
 		}
-
-        // workaround for Obsidian bug
-        this.doScroll(leaf, scroll - 1)
 	}
 
 	doScroll(leaf: MarkdownView, num: number) {
