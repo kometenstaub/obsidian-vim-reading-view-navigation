@@ -11,3 +11,8 @@ The scroll speed can be configured in the settings.
 ## Installation
 
 It can be installed manually or via BRAT. It is not in the community plugins.
+
+## Credits
+
+Thank you to @pjeby for the [monkey-around](https://github.com/pjeby/monkey-around) library which is used for monkey-patching an internal method.
+
