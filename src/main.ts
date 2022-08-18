@@ -96,8 +96,6 @@ export default class VimReadingViewNavigation extends Plugin {
 	navScope: Scope;
 	jumpTopEvent: (event: KeyboardEvent) => void;
 	keyArray: string[] = [];
-	oldObserver: MutationObserver;
-	observers: MutationObserver[] = [];
     uninstall: any;
 
 	async onload() {
@@ -157,57 +155,6 @@ export default class VimReadingViewNavigation extends Plugin {
         })
 
 
-        /*
-		app.workspace.on('active-leaf-change', (leaf) => {
-			if (leaf.view.getViewType() === 'markdown') {
-				if (this.oldObserver) {
-					this.oldObserver.disconnect();
-					this.observers.remove(this.oldObserver);
-				}
-				this.oldObserver = new MutationObserver(
-					(mutations: MutationRecord[]) => {
-						for (let j = 0; j < mutations.length; j++) {
-							const el = mutations[j];
-							const nodes = el.addedNodes;
-							for (let i = 0; i < nodes.length; i++) {
-								const node = nodes[i];
-								if (
-									node.classList?.value ===
-									'document-search-container'
-								) {
-									app.keymap.popScope(this.navScope);
-									const button =
-										leaf.view.containerEl.getElementsByClassName(
-											'document-search-close-button'
-										)[0];
-									if (!button) return;
-									button.addEventListener(
-										'click',
-										() => {
-											app.keymap.pushScope(this.navScope);
-										},
-										{ capture: false, once: true }
-									);
-									activeWindow.addEventListener(
-										'keydown',
-										listener,
-										{ capture: false }
-									);
-									return;
-								}
-							}
-						}
-					}
-				);
-				this.oldObserver.observe(leaf.view.containerEl, {
-					childList: true,
-					subtree: true,
-				});
-				// disconnect all later
-				this.observers.push(this.oldObserver);
-			}
-		});
-       */
 
 		const listener = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
@@ -239,10 +186,6 @@ export default class VimReadingViewNavigation extends Plugin {
 	async onunload() {
 		app.keymap.popScope(this.navScope);
 		removeEventListener('keydown', this.jumpTopEvent);
-		// at this point there should only be one
-		// for (const obs of this.observers) {
-		// 	obs.disconnect();
-		// }
         this.uninstall();
 		console.log('Vim Reading View Navigation unloaded.');
 	}
