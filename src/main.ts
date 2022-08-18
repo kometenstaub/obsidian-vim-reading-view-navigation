@@ -119,7 +119,7 @@ export default class VimReadingViewNavigation extends Plugin {
 		app.keymap.pushScope(this.navScope);
 
         // in case reading/edit mode got toggled without closing the search/replace 
-        app.workspace.on('active-leaf-change', (leaf) => {
+        this.registerEvent(app.workspace.on('active-leaf-change', (leaf) => {
             if (leaf.view.getViewType() === 'markdown') {
                 if (this.uninstallExecuteCommand) {
                     this.uninstallExecuteCommand();
@@ -137,9 +137,9 @@ export default class VimReadingViewNavigation extends Plugin {
                     }
                 })
             
-        }})
+        }}))
 
-        app.workspace.on('active-leaf-change', (leaf) => {
+        this.registerEvent(app.workspace.on('active-leaf-change', (leaf) => {
             if (leaf.view.getViewType() === 'markdown') {
                 if (this.uninstall) {
                     this.uninstall();
@@ -174,7 +174,7 @@ export default class VimReadingViewNavigation extends Plugin {
                     }
                 )
             }
-        })
+        }))
 
 
 
