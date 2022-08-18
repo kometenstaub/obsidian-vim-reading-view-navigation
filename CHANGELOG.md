@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.5](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.2.4...1.2.5) (2022-08-18)
+
+
+### Bug Fixes
+
+* register events ([27d5b86](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/27d5b868c40d687b5b36219b2040cb40ced41273))
+
 ### [1.2.4](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.2.3...1.2.4) (2022-08-18)
 
 
