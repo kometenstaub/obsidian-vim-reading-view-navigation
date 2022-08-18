@@ -97,6 +97,7 @@ export default class VimReadingViewNavigation extends Plugin {
 	jumpTopEvent: (event: KeyboardEvent) => void;
 	keyArray: string[] = [];
     uninstall: any;
+    uninstallExecuteCommand: any;
 
 	async onload() {
 		await this.loadSettings();
@@ -116,6 +117,27 @@ export default class VimReadingViewNavigation extends Plugin {
 		const navScope = this.navScope = new Scope(app.scope);
 		registerScopes(this.navScope, this);
 		app.keymap.pushScope(this.navScope);
+
+        // in case reading/edit mode got toggled without closing the search/replace 
+        app.workspace.on('active-leaf-change', (leaf) => {
+            if (leaf.view.getViewType() === 'markdown') {
+                if (this.uninstallExecuteCommand) {
+                    this.uninstallExecuteCommand();
+                }
+                this.uninstallExecuteCommand = around(leaf, {
+                    setViewState(oldMethod){
+                        return function(...args) {
+                            if (args?.at(0)?.state?.mode === 'source' || args?.at(0)?.state?.mode === 'preview') {
+                                app.keymap.popScope(navScope);
+                                app.keymap.pushScope(navScope);
+                            }
+                            const result = oldMethod && oldMethod.apply(this, args)
+                            return result
+                        }
+                    }
+                })
+            
+        }})
 
         app.workspace.on('active-leaf-change', (leaf) => {
             if (leaf.view.getViewType() === 'markdown') {
@@ -187,6 +209,7 @@ export default class VimReadingViewNavigation extends Plugin {
 		app.keymap.popScope(this.navScope);
 		removeEventListener('keydown', this.jumpTopEvent);
         this.uninstall();
+        this.uninstallExecuteCommand();
 		console.log('Vim Reading View Navigation unloaded.');
 	}
 
