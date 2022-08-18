@@ -6,11 +6,21 @@ import {
 	PluginSettingTab,
 	Scope,
 	Setting,
-	WorkspaceLeaf,
 } from 'obsidian';
+
+import {around} from "monkey-around";
 
 interface VimScrollSetting {
 	scrollDifference: number;
+}
+
+declare module "obsidian" {
+    interface App {
+        commands: {
+            executeCommandById(id: string): void;
+            executeCommand(args: any[]): void;
+        }
+    }
 }
 
 const DEFAULT_SETTINGS: VimScrollSetting = { scrollDifference: 1 };
@@ -88,6 +98,7 @@ export default class VimReadingViewNavigation extends Plugin {
 	keyArray: string[] = [];
 	oldObserver: MutationObserver;
 	observers: MutationObserver[] = [];
+    uninstall: any;
 
 	async onload() {
 		await this.loadSettings();
@@ -104,10 +115,49 @@ export default class VimReadingViewNavigation extends Plugin {
 			}
 		};
 
-		this.navScope = new Scope(app.scope);
+		const navScope = this.navScope = new Scope(app.scope);
 		registerScopes(this.navScope, this);
 		app.keymap.pushScope(this.navScope);
 
+        app.workspace.on('active-leaf-change', (leaf) => {
+            if (leaf.view.getViewType() === 'markdown') {
+                if (this.uninstall) {
+                    this.uninstall();
+                }
+
+                this.uninstall = around( leaf.view, {
+                    showSearch(oldMethod){
+                            return function(...args) {
+                                app.keymap.popScope(navScope);
+                                const result  = oldMethod && oldMethod.apply(this, args);
+                                const button =
+                                    leaf.view.containerEl.getElementsByClassName(
+                                        'document-search-close-button'
+                                    )[0];
+                                if (button) {
+                                    button.addEventListener(
+                                        'click',
+                                        () => {
+                                            app.keymap.pushScope(navScope);
+                                        },
+                                        { capture: false, once: true }
+                                    );
+                                    activeWindow.addEventListener(
+                                        'keydown',
+                                        listener,
+                                        { capture: false }
+                                    );
+                                }
+                                return result;
+                            }
+                        }
+                    }
+                )
+            }
+        })
+
+
+        /*
 		app.workspace.on('active-leaf-change', (leaf) => {
 			if (leaf.view.getViewType() === 'markdown') {
 				if (this.oldObserver) {
@@ -157,6 +207,7 @@ export default class VimReadingViewNavigation extends Plugin {
 				this.observers.push(this.oldObserver);
 			}
 		});
+       */
 
 		const listener = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
@@ -189,9 +240,10 @@ export default class VimReadingViewNavigation extends Plugin {
 		app.keymap.popScope(this.navScope);
 		removeEventListener('keydown', this.jumpTopEvent);
 		// at this point there should only be one
-		for (const obs of this.observers) {
-			obs.disconnect();
-		}
+		// for (const obs of this.observers) {
+		// 	obs.disconnect();
+		// }
+        this.uninstall();
 		console.log('Vim Reading View Navigation unloaded.');
 	}
 
