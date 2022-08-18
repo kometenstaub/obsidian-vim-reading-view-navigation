@@ -125,10 +125,10 @@ export default class VimReadingViewNavigation extends Plugin {
 		this.registerEvent(
 			app.workspace.on('active-leaf-change', (leaf) => {
 				if (leaf.view.getViewType() === 'markdown') {
-                    // In case it does not have a scope, set it.
-                    // popScope before makes sure that a scope does not get set multiple times
-                    app.keymap.popScope(navScope)
-                    app.keymap.pushScope(navScope)
+					// In case it does not have a scope, set it.
+					// popScope before makes sure that a scope does not get set multiple times
+					app.keymap.popScope(navScope);
+					app.keymap.pushScope(navScope);
 					if (this.uninstallExecuteCommand) {
 						this.uninstallExecuteCommand();
 					}
@@ -192,15 +192,12 @@ export default class VimReadingViewNavigation extends Plugin {
 							);
 						},
 					});
-
 				} else {
-                    // other views have their own scopes
-                    app.keymap.popScope(navScope)
-                }
+					// other views have their own scopes
+					app.keymap.popScope(navScope);
+				}
 			})
 		);
-
-
 
 		const listener = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
