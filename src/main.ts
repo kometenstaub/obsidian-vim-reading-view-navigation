@@ -8,19 +8,19 @@ import {
 	Setting,
 } from 'obsidian';
 
-import {around} from "monkey-around";
+import { around } from 'monkey-around';
 
 interface VimScrollSetting {
 	scrollDifference: number;
 }
 
-declare module "obsidian" {
-    interface App {
-        commands: {
-            executeCommandById(id: string): void;
-            executeCommand(args: any[]): void;
-        }
-    }
+declare module 'obsidian' {
+	interface App {
+		commands: {
+			executeCommandById(id: string): void;
+			executeCommand(args: any[]): void;
+		};
+	}
 }
 
 const DEFAULT_SETTINGS: VimScrollSetting = { scrollDifference: 1 };
@@ -96,8 +96,8 @@ export default class VimReadingViewNavigation extends Plugin {
 	navScope: Scope;
 	jumpTopEvent: (event: KeyboardEvent) => void;
 	keyArray: string[] = [];
-    uninstall: any;
-    uninstallExecuteCommand: any;
+	uninstall: any;
+	uninstallExecuteCommand: any;
 
 	async onload() {
 		await this.loadSettings();
@@ -114,69 +114,75 @@ export default class VimReadingViewNavigation extends Plugin {
 			}
 		};
 
-		const navScope = this.navScope = new Scope(app.scope);
+		const navScope = (this.navScope = new Scope(app.scope));
 		registerScopes(this.navScope, this);
 		app.keymap.pushScope(this.navScope);
 
-        // in case reading/edit mode got toggled without closing the search/replace 
-        this.registerEvent(app.workspace.on('active-leaf-change', (leaf) => {
-            if (leaf.view.getViewType() === 'markdown') {
-                if (this.uninstallExecuteCommand) {
-                    this.uninstallExecuteCommand();
-                }
-                this.uninstallExecuteCommand = around(leaf, {
-                    setViewState(oldMethod){
-                        return function(...args) {
-                            if (args?.at(0)?.state?.mode === 'source' || args?.at(0)?.state?.mode === 'preview') {
-                                app.keymap.popScope(navScope);
-                                app.keymap.pushScope(navScope);
-                            }
-                            const result = oldMethod && oldMethod.apply(this, args)
-                            return result
-                        }
-                    }
-                })
-            
-        }}))
+		// in case reading/edit mode got toggled without closing the search/replace
+		this.registerEvent(
+			app.workspace.on('active-leaf-change', (leaf) => {
+				if (leaf.view.getViewType() === 'markdown') {
+					if (this.uninstallExecuteCommand) {
+						this.uninstallExecuteCommand();
+					}
+					this.uninstallExecuteCommand = around(leaf, {
+						setViewState(oldMethod) {
+							return function (...args) {
+								if (
+									args?.at(0)?.state?.mode === 'source' ||
+									args?.at(0)?.state?.mode === 'preview'
+								) {
+									app.keymap.popScope(navScope);
+									app.keymap.pushScope(navScope);
+								}
+								const result =
+									oldMethod && oldMethod.apply(this, args);
+								return result;
+							};
+						},
+					});
+				}
+			})
+		);
 
-        this.registerEvent(app.workspace.on('active-leaf-change', (leaf) => {
-            if (leaf.view.getViewType() === 'markdown') {
-                if (this.uninstall) {
-                    this.uninstall();
-                }
+		this.registerEvent(
+			app.workspace.on('active-leaf-change', (leaf) => {
+				if (leaf.view.getViewType() === 'markdown') {
+					if (this.uninstall) {
+						this.uninstall();
+					}
 
-                this.uninstall = around( leaf.view, {
-                    showSearch(oldMethod){
-                            return function(...args) {
-                                app.keymap.popScope(navScope);
-                                const result  = oldMethod && oldMethod.apply(this, args);
-                                const button =
-                                    leaf.view.containerEl.getElementsByClassName(
-                                        'document-search-close-button'
-                                    )[0];
-                                if (button) {
-                                    button.addEventListener(
-                                        'click',
-                                        () => {
-                                            app.keymap.pushScope(navScope);
-                                        },
-                                        { capture: false, once: true }
-                                    );
-                                    activeWindow.addEventListener(
-                                        'keydown',
-                                        listener,
-                                        { capture: false }
-                                    );
-                                }
-                                return result;
-                            }
-                        }
-                    }
-                )
-            }
-        }))
-
-
+					this.uninstall = around(leaf.view, {
+						showSearch(oldMethod) {
+							return function (...args) {
+								app.keymap.popScope(navScope);
+								const result =
+									oldMethod && oldMethod.apply(this, args);
+								const button =
+									leaf.view.containerEl.getElementsByClassName(
+										'document-search-close-button'
+									)[0];
+								if (button) {
+									button.addEventListener(
+										'click',
+										() => {
+											app.keymap.pushScope(navScope);
+										},
+										{ capture: false, once: true }
+									);
+									activeWindow.addEventListener(
+										'keydown',
+										listener,
+										{ capture: false }
+									);
+								}
+								return result;
+							};
+						},
+					});
+				}
+			})
+		);
 
 		const listener = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
@@ -208,8 +214,8 @@ export default class VimReadingViewNavigation extends Plugin {
 	async onunload() {
 		app.keymap.popScope(this.navScope);
 		removeEventListener('keydown', this.jumpTopEvent);
-        this.uninstall();
-        this.uninstallExecuteCommand();
+		this.uninstall();
+		this.uninstallExecuteCommand();
 		console.log('Vim Reading View Navigation unloaded.');
 	}
 
