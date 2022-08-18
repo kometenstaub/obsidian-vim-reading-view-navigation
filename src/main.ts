@@ -6,9 +6,10 @@ import {
 	PluginSettingTab,
 	Scope,
 	Setting,
+    WorkspaceLeaf,
 } from 'obsidian';
 
-import { around } from 'monkey-around';
+import { around, dedupe } from 'monkey-around';
 
 interface VimScrollSetting {
 	scrollDifference: number;
@@ -98,6 +99,7 @@ export default class VimReadingViewNavigation extends Plugin {
 	keyArray: string[] = [];
 	uninstall: any;
 	uninstallExecuteCommand: any;
+    leaf: WorkspaceLeaf | null = null;
 
 	async onload() {
 		await this.loadSettings();
@@ -127,7 +129,7 @@ export default class VimReadingViewNavigation extends Plugin {
 					}
 					this.uninstallExecuteCommand = around(leaf, {
 						setViewState(oldMethod) {
-							return function (...args) {
+							return dedupe('vim-reading-nav-toggle', oldMethod, function (...args) {
 								if (
 									args?.at(0)?.state?.mode === 'source' ||
 									args?.at(0)?.state?.mode === 'preview'
@@ -138,12 +140,14 @@ export default class VimReadingViewNavigation extends Plugin {
 								const result =
 									oldMethod && oldMethod.apply(this, args);
 								return result;
-							};
+							});
 						},
 					});
 				}
 			})
 		);
+
+        const plugin = this;
 
 		this.registerEvent(
 			app.workspace.on('active-leaf-change', (leaf) => {
@@ -154,7 +158,7 @@ export default class VimReadingViewNavigation extends Plugin {
 
 					this.uninstall = around(leaf.view, {
 						showSearch(oldMethod) {
-							return function (...args) {
+							return dedupe('vim-reading-nav-close', oldMethod, function (...args) {
 								app.keymap.popScope(navScope);
 								const result =
 									oldMethod && oldMethod.apply(this, args);
@@ -170,14 +174,15 @@ export default class VimReadingViewNavigation extends Plugin {
 										},
 										{ capture: false, once: true }
 									);
-									activeWindow.addEventListener(
+                                    plugin.leaf = leaf
+									plugin.leaf.view.containerEl.addEventListener(
 										'keydown',
 										listener,
 										{ capture: false }
 									);
 								}
 								return result;
-							};
+							});
 						},
 					});
 				}
@@ -187,7 +192,7 @@ export default class VimReadingViewNavigation extends Plugin {
 		const listener = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
 				app.keymap.pushScope(this.navScope);
-				activeWindow.removeEventListener('keydown', listener, {
+				this.leaf.view.containerEl.removeEventListener('keydown', listener, {
 					capture: false,
 				});
 			}
