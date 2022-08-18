@@ -6,7 +6,7 @@ import {
 	PluginSettingTab,
 	Scope,
 	Setting,
-    WorkspaceLeaf,
+	WorkspaceLeaf,
 } from 'obsidian';
 
 import { around, dedupe } from 'monkey-around';
@@ -99,7 +99,7 @@ export default class VimReadingViewNavigation extends Plugin {
 	keyArray: string[] = [];
 	uninstall: any;
 	uninstallExecuteCommand: any;
-    leaf: WorkspaceLeaf | null = null;
+	leaf: WorkspaceLeaf | null = null;
 
 	async onload() {
 		await this.loadSettings();
@@ -129,25 +129,30 @@ export default class VimReadingViewNavigation extends Plugin {
 					}
 					this.uninstallExecuteCommand = around(leaf, {
 						setViewState(oldMethod) {
-							return dedupe('vim-reading-nav-toggle', oldMethod, function (...args) {
-								if (
-									args?.at(0)?.state?.mode === 'source' ||
-									args?.at(0)?.state?.mode === 'preview'
-								) {
-									app.keymap.popScope(navScope);
-									app.keymap.pushScope(navScope);
+							return dedupe(
+								'vim-reading-nav-toggle',
+								oldMethod,
+								function (...args) {
+									if (
+										args?.at(0)?.state?.mode === 'source' ||
+										args?.at(0)?.state?.mode === 'preview'
+									) {
+										app.keymap.popScope(navScope);
+										app.keymap.pushScope(navScope);
+									}
+									const result =
+										oldMethod &&
+										oldMethod.apply(this, args);
+									return result;
 								}
-								const result =
-									oldMethod && oldMethod.apply(this, args);
-								return result;
-							});
+							);
 						},
 					});
 				}
 			})
 		);
 
-        const plugin = this;
+		const plugin = this;
 
 		this.registerEvent(
 			app.workspace.on('active-leaf-change', (leaf) => {
@@ -158,31 +163,36 @@ export default class VimReadingViewNavigation extends Plugin {
 
 					this.uninstall = around(leaf.view, {
 						showSearch(oldMethod) {
-							return dedupe('vim-reading-nav-close', oldMethod, function (...args) {
-								app.keymap.popScope(navScope);
-								const result =
-									oldMethod && oldMethod.apply(this, args);
-								const button =
-									leaf.view.containerEl.getElementsByClassName(
-										'document-search-close-button'
-									)[0];
-								if (button) {
-									button.addEventListener(
-										'click',
-										() => {
-											app.keymap.pushScope(navScope);
-										},
-										{ capture: false, once: true }
-									);
-                                    plugin.leaf = leaf
-									plugin.leaf.view.containerEl.addEventListener(
-										'keydown',
-										listener,
-										{ capture: false }
-									);
+							return dedupe(
+								'vim-reading-nav-close',
+								oldMethod,
+								function (...args) {
+									app.keymap.popScope(navScope);
+									const result =
+										oldMethod &&
+										oldMethod.apply(this, args);
+									const button =
+										leaf.view.containerEl.getElementsByClassName(
+											'document-search-close-button'
+										)[0];
+									if (button) {
+										button.addEventListener(
+											'click',
+											() => {
+												app.keymap.pushScope(navScope);
+											},
+											{ capture: false, once: true }
+										);
+										plugin.leaf = leaf;
+										plugin.leaf.view.containerEl.addEventListener(
+											'keydown',
+											listener,
+											{ capture: false }
+										);
+									}
+									return result;
 								}
-								return result;
-							});
+							);
 						},
 					});
 				}
@@ -192,9 +202,13 @@ export default class VimReadingViewNavigation extends Plugin {
 		const listener = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
 				app.keymap.pushScope(this.navScope);
-				this.leaf.view.containerEl.removeEventListener('keydown', listener, {
-					capture: false,
-				});
+				this.leaf.view.containerEl.removeEventListener(
+					'keydown',
+					listener,
+					{
+						capture: false,
+					}
+				);
 			}
 		};
 		console.log('Vim Reading View Navigation loaded.');
