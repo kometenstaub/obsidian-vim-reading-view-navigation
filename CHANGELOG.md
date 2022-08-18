@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.7](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.2.6...1.2.7) (2022-08-18)
+
+
+### Bug Fixes
+
+* popScope when not MarkdownView ([9104ecc](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/9104ecc099c8be1f67247d3fbe858240efab7839))
+
 ### [1.2.6](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.2.5...1.2.6) (2022-08-18)
 
 ### [1.2.5](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.2.4...1.2.5) (2022-08-18)
