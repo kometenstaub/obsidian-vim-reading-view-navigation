@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.8](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.2.7...1.2.8) (2022-08-19)
+
+
+### Bug Fixes
+
+* add scope back for Escape ([6dbbd2c](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/6dbbd2cf8b1f3d3540e76c3501a011835fb9fdf8))
+* bugs ([026ea7e](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/026ea7ea799d2d09a8baf11243013abb330cfe41))
+* don't capture j ([f24cf12](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/f24cf12000d12ec5f98bc7eae92f1cf150d1b54a))
+* use leaf scope instead of global scope ([13c5199](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/commit/13c51995bae7fa96fffae33b670ded868bea414d))
+
 ### [1.2.7](https://github.com/kometenstaub/obsidian-vim-reading-view-navigation/compare/1.2.6...1.2.7) (2022-08-18)
 
 
