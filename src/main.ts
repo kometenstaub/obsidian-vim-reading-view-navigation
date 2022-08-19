@@ -125,26 +125,6 @@ export default class VimReadingViewNavigation extends Plugin {
 					}
 					console.log(leaf.view.scope);
 
-					this.uninstall.push(
-						// @ts-expect-error, not typed
-						around(leaf.view.editMode.search, {
-							hide(oldMethod) {
-								return function (...args) {
-									const result =
-										oldMethod &&
-										oldMethod.apply(this, args);
-									// @ts-expect-error, not typed
-									leaf.view.scope = navScope;
-									leaf.view.containerEl.removeEventListener(
-										'keydown',
-										listener,
-										{ capture: false }
-									);
-									return result;
-								};
-							},
-						})
-					);
 
 					this.uninstall.push(
 						// @ts-expect-error, not typed
