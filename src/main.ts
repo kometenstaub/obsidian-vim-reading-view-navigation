@@ -97,9 +97,9 @@ export default class VimReadingViewNavigation extends Plugin {
 	navScope: Scope;
 	jumpTopEvent: (event: KeyboardEvent) => void;
 	keyArray: string[] = [];
-	uninstall: any;
-	uninstallExecuteCommand: any;
+	uninstall: any[] = [];
 	leaf: WorkspaceLeaf | null = null;
+    ids: Set<string> = new Set();
 
 	async onload() {
 		await this.loadSettings();
@@ -118,99 +118,50 @@ export default class VimReadingViewNavigation extends Plugin {
 
 		const navScope = (this.navScope = new Scope(app.scope));
 		registerScopes(this.navScope, this);
-		app.keymap.pushScope(this.navScope);
+		// app.keymap.pushScope(this.navScope);
 
 		const plugin = this;
 		// in case reading/edit mode got toggled without closing the search/replace
 		this.registerEvent(
 			app.workspace.on('active-leaf-change', (leaf) => {
 				if (leaf.view.getViewType() === 'markdown') {
-					// In case it does not have a scope, set it.
-					// popScope before makes sure that a scope does not get set multiple times
-					app.keymap.popScope(navScope);
-					app.keymap.pushScope(navScope);
-					if (this.uninstallExecuteCommand) {
-						this.uninstallExecuteCommand();
-					}
-
-					this.uninstallExecuteCommand = around(leaf, {
-						setViewState(oldMethod) {
-							return dedupe(
-								'vim-reading-nav-toggle',
-								oldMethod,
-								function (...args) {
-									if (
-										args?.at(0)?.state?.mode === 'source' ||
-										args?.at(0)?.state?.mode === 'preview'
-									) {
-										app.keymap.popScope(navScope);
-										app.keymap.pushScope(navScope);
-									}
+                    // @ts-expect-error, not typed
+                    if (this.ids.has(leaf.id)) return;
+                    // @ts-expect-error, not typed
+                    this.ids.add(leaf.id)
+                    leaf.view.scope = navScope;
+                    // @ts-expect-error, not typed
+					this.uninstall.push(around(leaf.view.editMode.search, {
+						hide(oldMethod) {
+							return function (...args) {
+                                console.log("hello")
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
+                                leaf.view.scope = navScope
 									return result;
 								}
-							);
+							;
 						},
-					});
-
-					if (this.uninstall) {
-						this.uninstall();
-					}
-					this.uninstall = around(leaf.view, {
-						showSearch(oldMethod) {
-							return dedupe(
-								'vim-reading-nav-close',
-								oldMethod,
-								function (...args) {
-									app.keymap.popScope(navScope);
+					}));
+                    // @ts-expect-error, not typed
+					this.uninstall.push(around(leaf.view.previewMode.search, {
+						hide(oldMethod) {
+							return function (...args) {
+                                console.log("hello p")
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
-									const button =
-										leaf.view.containerEl.getElementsByClassName(
-											'document-search-close-button'
-										)[0];
-									if (button) {
-										button.addEventListener(
-											'click',
-											() => {
-												app.keymap.pushScope(navScope);
-											},
-											{ capture: false, once: true }
-										);
-										plugin.leaf = leaf;
-										plugin.leaf.view.containerEl.addEventListener(
-											'keydown',
-											listener,
-											{ capture: false }
-										);
-									}
+                                leaf.view.scope = navScope
 									return result;
 								}
-							);
+							;
 						},
-					});
-				} else {
-					// other views have their own scopes
-					app.keymap.popScope(navScope);
-				}
-			})
+					}));
+				} 
+            })
 		);
 
-		const listener = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				app.keymap.pushScope(this.navScope);
-				this.leaf.view.containerEl.removeEventListener(
-					'keydown',
-					listener,
-					{
-						capture: false,
-					}
-				);
-			}
-		};
 		console.log('Vim Reading View Navigation loaded.');
 	}
 
@@ -233,8 +184,9 @@ export default class VimReadingViewNavigation extends Plugin {
 	async onunload() {
 		app.keymap.popScope(this.navScope);
 		removeEventListener('keydown', this.jumpTopEvent);
-		this.uninstall();
-		this.uninstallExecuteCommand();
+        for (const el of this.uninstall) {
+            el()
+        }
 		console.log('Vim Reading View Navigation unloaded.');
 	}
 
