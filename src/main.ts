@@ -32,7 +32,7 @@ const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
 	scope.register([], 'j', (evt: KeyboardEvent) => {
 		const leaf = app.workspace.getActiveViewOfType(MarkdownView);
 		self.keyArray = self.resetJumpTop();
-		if (leaf.getMode() === 'preview' && !self.displayValue(leaf)) {
+		if (leaf.getMode() === 'preview') {
 			self.scrollDown(leaf);
 			return false;
 		}
@@ -43,9 +43,8 @@ const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
 	scope.register([], 'k', (evt: KeyboardEvent) => {
 		const leaf = app.workspace.getActiveViewOfType(MarkdownView);
 		self.keyArray = self.resetJumpTop();
-		if (leaf.getMode() === 'preview' && !self.displayValue(leaf)) {
+		if (leaf.getMode() === 'preview') {
 			self.scrollUp(leaf);
-			return false;
 		}
 		return true;
 	});
@@ -53,13 +52,11 @@ const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
 		const leaf = app.workspace.getActiveViewOfType(MarkdownView);
 		if (
 			leaf.getMode() === 'preview' &&
-			!self.displayValue(leaf) &&
 			evt.key === 'g'
 		) {
 			if (self.keyArray.length === 0) {
 				addEventListener('keydown', self.jumpTopEvent);
 				self.keyArray.push(evt.key);
-				return false;
 			}
 		}
 		return true;
@@ -72,21 +69,18 @@ const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
 		const leaf = app.workspace.getActiveViewOfType(MarkdownView);
 		if (
 			leaf.getMode() === 'preview' &&
-			!self.displayValue(leaf) &&
 			evt.key === 'G'
 		) {
 			self.keyArray = self.resetJumpTop();
 			self.jumpBottom(leaf);
-			return false;
 		}
 		return true;
 	});
 	scope.register(['Shift'], 'g', (evt: KeyboardEvent) => {
 		const leaf = app.workspace.getActiveViewOfType(MarkdownView);
 		self.keyArray = self.resetJumpTop();
-		if (leaf.getMode() === 'preview' && !self.displayValue(leaf)) {
+		if (leaf.getMode() === 'preview') {
 			self.jumpBottom(leaf);
-			return false;
 		}
 		return true;
 	});
@@ -118,18 +112,20 @@ export default class VimReadingViewNavigation extends Plugin {
 
 		const navScope = (this.navScope = new Scope(app.scope));
 		registerScopes(this.navScope, this);
-		// app.keymap.pushScope(this.navScope);
 
 		const plugin = this;
 		// in case reading/edit mode got toggled without closing the search/replace
 		this.registerEvent(
 			app.workspace.on('active-leaf-change', (leaf) => {
+
 				if (leaf.view.getViewType() === 'markdown') {
                     // @ts-expect-error, not typed
                     if (this.ids.has(leaf.id)) return;
                     // @ts-expect-error, not typed
                     this.ids.add(leaf.id)
+                        // @ts-expect-error, not typed
                     leaf.view.scope = navScope;
+
                     // @ts-expect-error, not typed
 					this.uninstall.push(around(leaf.view.editMode.search, {
 						hide(oldMethod) {
@@ -138,12 +134,15 @@ export default class VimReadingViewNavigation extends Plugin {
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
+                        // @ts-expect-error, not typed
                                 leaf.view.scope = navScope
+                                leaf.view.containerEl.removeEventListener('keydown', listener, {capture: false})
 									return result;
 								}
 							;
 						},
 					}));
+
                     // @ts-expect-error, not typed
 					this.uninstall.push(around(leaf.view.previewMode.search, {
 						hide(oldMethod) {
@@ -152,7 +151,28 @@ export default class VimReadingViewNavigation extends Plugin {
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
+                        // @ts-expect-error, not typed
                                 leaf.view.scope = navScope
+                                leaf.view.containerEl.removeEventListener('keydown', listener, {capture: false})
+									return result;
+								}
+							;
+						},
+					}));
+
+                    // somehow Escape doesn't trigger the monkey-patched hide method, only
+                    // clicking the close button does that
+					this.uninstall.push(around(leaf.view, {
+                        // @ts-expect-error, not typed
+						showSearch(oldMethod) {
+							return function (...args) {
+                                console.log("hello s")
+									const result =
+										oldMethod &&
+										oldMethod.apply(this, args);
+                                    console.log(leaf.view.scope)
+                                    plugin.leaf = leaf
+                                    leaf.view.containerEl.addEventListener('keydown', listener, {capture: false, once: true})
 									return result;
 								}
 							;
@@ -162,27 +182,20 @@ export default class VimReadingViewNavigation extends Plugin {
             })
 		);
 
+        const listener = (event: KeyboardEvent) => {
+            console.log(event)
+            if (event.key === 'Escape') {
+                console.log(this.leaf.view.scope)
+                this.leaf.view.scope = navScope
+                console.log(this.leaf.view.scope)
+            }
+        }
+
 		console.log('Vim Reading View Navigation loaded.');
 	}
 
-	// Only needed when settings opened while search open and Esc didn't close it and
-	// user wants to continue searching.
-	// As long as the search is visible and the scope is still active because Esc didn't work
-	// remove the scope.
-	displayValue(leaf: MarkdownView): boolean {
-		const exists = leaf.contentEl.getElementsByClassName(
-			'document-search-container'
-		)[0];
-		if (exists) {
-			app.keymap.popScope(this.navScope);
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 	async onunload() {
-		app.keymap.popScope(this.navScope);
 		removeEventListener('keydown', this.jumpTopEvent);
         for (const el of this.uninstall) {
             el()
