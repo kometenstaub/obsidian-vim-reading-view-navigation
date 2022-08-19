@@ -115,15 +115,12 @@ export default class VimReadingViewNavigation extends Plugin {
 					plugin.leaf = leaf;
 					// @ts-expect-error, not typed
 					if (this.ids.has(leaf.id)) return;
-					console.log('new leaf');
 					// @ts-expect-error, not typed
 					this.ids.add(leaf.id);
 					// @ts-expect-error, not typed
-					console.log(leaf.view.scope);
 					if (!leaf.view.scope) {
 						leaf.view.scope = navScope;
 					}
-					console.log(leaf.view.scope);
 
 
 					this.uninstall.push(
@@ -154,7 +151,6 @@ export default class VimReadingViewNavigation extends Plugin {
 							// @ts-expect-error, not typed
 							showSearch(oldMethod) {
 								return function (...args) {
-									console.log('show');
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
