@@ -12,6 +12,10 @@ The scroll speed can be configured in the settings.
 
 It can be installed manually or via BRAT. It is not in the community plugins.
 
+## Known issues
+
+When the search is open in reading view and edit view is toggled on and off, the search needs to be closed and reopened again for it to work correctly.
+
 ## Credits
 
 Thank you to @pjeby for the [monkey-around](https://github.com/pjeby/monkey-around) library which is used for monkey-patching internal methods.
