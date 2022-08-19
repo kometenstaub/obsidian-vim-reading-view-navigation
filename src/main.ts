@@ -34,7 +34,6 @@ const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
 		self.keyArray = self.resetJumpTop();
 		if (leaf.getMode() === 'preview') {
 			self.scrollDown(leaf);
-			return false;
 		}
 		return true;
 	});
@@ -121,7 +120,6 @@ export default class VimReadingViewNavigation extends Plugin {
 					if (!leaf.view.scope) {
 						leaf.view.scope = navScope;
 					}
-
 
 					this.uninstall.push(
 						// @ts-expect-error, not typed
