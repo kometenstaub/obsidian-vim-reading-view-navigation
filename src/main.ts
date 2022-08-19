@@ -88,6 +88,7 @@ export default class VimReadingViewNavigation extends Plugin {
 	uninstall: any[] = [];
 	leaf: WorkspaceLeaf | null = null;
 	ids: Set<string> = new Set();
+	listener: EventListener;
 
 	async onload() {
 		await this.loadSettings();
@@ -168,7 +169,7 @@ export default class VimReadingViewNavigation extends Plugin {
 			})
 		);
 
-		const listener = (event: KeyboardEvent) => {
+		const listener = (this.listener = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
 				this.leaf.view.scope = navScope;
 				this.leaf.view.containerEl.removeEventListener(
@@ -177,7 +178,7 @@ export default class VimReadingViewNavigation extends Plugin {
 					{ capture: false }
 				);
 			}
-		};
+		});
 
 		console.log('Vim Reading View Navigation loaded.');
 	}
@@ -191,6 +192,11 @@ export default class VimReadingViewNavigation extends Plugin {
 			if (leaf.view.getViewType() === 'markdown') {
 				if (leaf.view.scope === this.navScope) {
 					leaf.view.scope = null;
+					leaf.view.containerEl.removeEventListener(
+						'keydown',
+						this.listener,
+						{ capture: false }
+					);
 				}
 			}
 		});
