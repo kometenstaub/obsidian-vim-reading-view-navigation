@@ -88,6 +88,7 @@ export default class VimReadingViewNavigation extends Plugin {
 	uninstall: any[] = [];
 	leaf: WorkspaceLeaf | null = null;
 	ids: Set<string> = new Set();
+    scope: Scope;
 
 	async onload() {
 		await this.loadSettings();
@@ -178,6 +179,7 @@ export default class VimReadingViewNavigation extends Plugin {
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
+                                    plugin.scope = leaf.view.scope;
 									plugin.leaf.view.containerEl.addEventListener(
 										'keydown',
 										listener,
@@ -188,6 +190,32 @@ export default class VimReadingViewNavigation extends Plugin {
 							},
 						})
 					);
+
+                    this.uninstall.push(
+                        around(leaf, {
+                            setViewState(oldMethod) {
+                                return function(...args) {
+									const result =
+										oldMethod &&
+										oldMethod.apply(this, args);
+                                    if (
+										//args?.at(0)?.state?.mode === 'source' ||
+										args?.at(0)?.state?.mode === 'preview'
+									) {
+                                        const search = leaf.view.containerEl.getElementsByClassName('document-search-container')[0]
+                                        console.log(search)
+                                        if (search) {
+                                            console.log(leaf.view.scope)
+                                            console.log(plugin.scope)
+                                            leaf.view.scope = plugin.scope
+                                        }
+									}
+									return result;
+                                }
+                            }
+                            }
+                        )
+                    )
 				}
 			})
 		);
