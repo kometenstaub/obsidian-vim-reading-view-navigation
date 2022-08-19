@@ -119,12 +119,11 @@ export default class VimReadingViewNavigation extends Plugin {
 					// @ts-expect-error, not typed
 					leaf.view.scope = navScope;
 
-					// @ts-expect-error, not typed
 					this.uninstall.push(
+					// @ts-expect-error, not typed
 						around(leaf.view.editMode.search, {
 							hide(oldMethod) {
 								return function (...args) {
-									console.log('hello');
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
@@ -141,12 +140,11 @@ export default class VimReadingViewNavigation extends Plugin {
 						})
 					);
 
-					// @ts-expect-error, not typed
 					this.uninstall.push(
+					// @ts-expect-error, not typed
 						around(leaf.view.previewMode.search, {
 							hide(oldMethod) {
 								return function (...args) {
-									console.log('hello p');
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
@@ -170,11 +168,9 @@ export default class VimReadingViewNavigation extends Plugin {
 							// @ts-expect-error, not typed
 							showSearch(oldMethod) {
 								return function (...args) {
-									console.log('hello s');
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
-									console.log(leaf.view.scope);
 									plugin.leaf = leaf;
 									leaf.view.containerEl.addEventListener(
 										'keydown',
@@ -191,11 +187,8 @@ export default class VimReadingViewNavigation extends Plugin {
 		);
 
 		const listener = (event: KeyboardEvent) => {
-			console.log(event);
 			if (event.key === 'Escape') {
-				console.log(this.leaf.view.scope);
 				this.leaf.view.scope = navScope;
-				console.log(this.leaf.view.scope);
 			}
 		};
 
