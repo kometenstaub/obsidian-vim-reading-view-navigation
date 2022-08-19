@@ -112,21 +112,21 @@ export default class VimReadingViewNavigation extends Plugin {
 		this.registerEvent(
 			app.workspace.on('active-leaf-change', (leaf) => {
 				if (leaf.view.getViewType() === 'markdown') {
-                    plugin.leaf = leaf;
+					plugin.leaf = leaf;
 					// @ts-expect-error, not typed
 					if (this.ids.has(leaf.id)) return;
-                    console.log('new leaf')
+					console.log('new leaf');
 					// @ts-expect-error, not typed
 					this.ids.add(leaf.id);
 					// @ts-expect-error, not typed
-                    console.log(leaf.view.scope)
-                    if (!leaf.view.scope) {
-                        leaf.view.scope = navScope
-                    }
-                    console.log(leaf.view.scope)
+					console.log(leaf.view.scope);
+					if (!leaf.view.scope) {
+						leaf.view.scope = navScope;
+					}
+					console.log(leaf.view.scope);
 
 					this.uninstall.push(
-					// @ts-expect-error, not typed
+						// @ts-expect-error, not typed
 						around(leaf.view.editMode.search, {
 							hide(oldMethod) {
 								return function (...args) {
@@ -147,7 +147,7 @@ export default class VimReadingViewNavigation extends Plugin {
 					);
 
 					this.uninstall.push(
-					// @ts-expect-error, not typed
+						// @ts-expect-error, not typed
 						around(leaf.view.previewMode.search, {
 							hide(oldMethod) {
 								return function (...args) {
@@ -174,14 +174,14 @@ export default class VimReadingViewNavigation extends Plugin {
 							// @ts-expect-error, not typed
 							showSearch(oldMethod) {
 								return function (...args) {
-                                    console.log('show')
+									console.log('show');
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
 									plugin.leaf.view.containerEl.addEventListener(
 										'keydown',
 										listener,
-										{ capture: false}
+										{ capture: false }
 									);
 									return result;
 								};
@@ -195,7 +195,11 @@ export default class VimReadingViewNavigation extends Plugin {
 		const listener = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
 				this.leaf.view.scope = navScope;
-                this.leaf.view.containerEl.removeEventListener('keydown', listener, {capture: false})
+				this.leaf.view.containerEl.removeEventListener(
+					'keydown',
+					listener,
+					{ capture: false }
+				);
 			}
 		};
 
