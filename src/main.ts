@@ -186,13 +186,13 @@ export default class VimReadingViewNavigation extends Plugin {
 		for (const el of this.uninstall) {
 			el();
 		}
-        app.workspace.iterateAllLeaves((leaf: WorkspaceLeaf) => {
-            if (leaf.view.getViewType() === 'markdown') {
-                if (leaf.view.scope === this.navScope) {
-                    leaf.view.scope = null;
-                }
-            }
-        })
+		app.workspace.iterateAllLeaves((leaf: WorkspaceLeaf) => {
+			if (leaf.view.getViewType() === 'markdown') {
+				if (leaf.view.scope === this.navScope) {
+					leaf.view.scope = null;
+				}
+			}
+		});
 		console.log('Vim Reading View Navigation unloaded.');
 	}
 
