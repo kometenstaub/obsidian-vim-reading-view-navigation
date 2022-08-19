@@ -50,10 +50,7 @@ const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
 	});
 	scope.register([], 'g', (evt: KeyboardEvent) => {
 		const leaf = app.workspace.getActiveViewOfType(MarkdownView);
-		if (
-			leaf.getMode() === 'preview' &&
-			evt.key === 'g'
-		) {
+		if (leaf.getMode() === 'preview' && evt.key === 'g') {
 			if (self.keyArray.length === 0) {
 				addEventListener('keydown', self.jumpTopEvent);
 				self.keyArray.push(evt.key);
@@ -67,10 +64,7 @@ const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
 	//  2nd evt registers Shift+g
 	scope.register([], 'g', (evt: KeyboardEvent) => {
 		const leaf = app.workspace.getActiveViewOfType(MarkdownView);
-		if (
-			leaf.getMode() === 'preview' &&
-			evt.key === 'G'
-		) {
+		if (leaf.getMode() === 'preview' && evt.key === 'G') {
 			self.keyArray = self.resetJumpTop();
 			self.jumpBottom(leaf);
 		}
@@ -93,7 +87,7 @@ export default class VimReadingViewNavigation extends Plugin {
 	keyArray: string[] = [];
 	uninstall: any[] = [];
 	leaf: WorkspaceLeaf | null = null;
-    ids: Set<string> = new Set();
+	ids: Set<string> = new Set();
 
 	async onload() {
 		await this.loadSettings();
@@ -117,89 +111,102 @@ export default class VimReadingViewNavigation extends Plugin {
 		// in case reading/edit mode got toggled without closing the search/replace
 		this.registerEvent(
 			app.workspace.on('active-leaf-change', (leaf) => {
-
 				if (leaf.view.getViewType() === 'markdown') {
-                    // @ts-expect-error, not typed
-                    if (this.ids.has(leaf.id)) return;
-                    // @ts-expect-error, not typed
-                    this.ids.add(leaf.id)
-                        // @ts-expect-error, not typed
-                    leaf.view.scope = navScope;
+					// @ts-expect-error, not typed
+					if (this.ids.has(leaf.id)) return;
+					// @ts-expect-error, not typed
+					this.ids.add(leaf.id);
+					// @ts-expect-error, not typed
+					leaf.view.scope = navScope;
 
-                    // @ts-expect-error, not typed
-					this.uninstall.push(around(leaf.view.editMode.search, {
-						hide(oldMethod) {
-							return function (...args) {
-                                console.log("hello")
+					// @ts-expect-error, not typed
+					this.uninstall.push(
+						around(leaf.view.editMode.search, {
+							hide(oldMethod) {
+								return function (...args) {
+									console.log('hello');
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
-                        // @ts-expect-error, not typed
-                                leaf.view.scope = navScope
-                                leaf.view.containerEl.removeEventListener('keydown', listener, {capture: false})
+									// @ts-expect-error, not typed
+									leaf.view.scope = navScope;
+									leaf.view.containerEl.removeEventListener(
+										'keydown',
+										listener,
+										{ capture: false }
+									);
 									return result;
-								}
-							;
-						},
-					}));
+								};
+							},
+						})
+					);
 
-                    // @ts-expect-error, not typed
-					this.uninstall.push(around(leaf.view.previewMode.search, {
-						hide(oldMethod) {
-							return function (...args) {
-                                console.log("hello p")
+					// @ts-expect-error, not typed
+					this.uninstall.push(
+						around(leaf.view.previewMode.search, {
+							hide(oldMethod) {
+								return function (...args) {
+									console.log('hello p');
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
-                        // @ts-expect-error, not typed
-                                leaf.view.scope = navScope
-                                leaf.view.containerEl.removeEventListener('keydown', listener, {capture: false})
+									// @ts-expect-error, not typed
+									leaf.view.scope = navScope;
+									leaf.view.containerEl.removeEventListener(
+										'keydown',
+										listener,
+										{ capture: false }
+									);
 									return result;
-								}
-							;
-						},
-					}));
+								};
+							},
+						})
+					);
 
-                    // somehow Escape doesn't trigger the monkey-patched hide method, only
-                    // clicking the close button does that
-					this.uninstall.push(around(leaf.view, {
-                        // @ts-expect-error, not typed
-						showSearch(oldMethod) {
-							return function (...args) {
-                                console.log("hello s")
+					// somehow Escape doesn't trigger the monkey-patched hide method, only
+					// clicking the close button does that
+					this.uninstall.push(
+						around(leaf.view, {
+							// @ts-expect-error, not typed
+							showSearch(oldMethod) {
+								return function (...args) {
+									console.log('hello s');
 									const result =
 										oldMethod &&
 										oldMethod.apply(this, args);
-                                    console.log(leaf.view.scope)
-                                    plugin.leaf = leaf
-                                    leaf.view.containerEl.addEventListener('keydown', listener, {capture: false, once: true})
+									console.log(leaf.view.scope);
+									plugin.leaf = leaf;
+									leaf.view.containerEl.addEventListener(
+										'keydown',
+										listener,
+										{ capture: false, once: true }
+									);
 									return result;
-								}
-							;
-						},
-					}));
-				} 
-            })
+								};
+							},
+						})
+					);
+				}
+			})
 		);
 
-        const listener = (event: KeyboardEvent) => {
-            console.log(event)
-            if (event.key === 'Escape') {
-                console.log(this.leaf.view.scope)
-                this.leaf.view.scope = navScope
-                console.log(this.leaf.view.scope)
-            }
-        }
+		const listener = (event: KeyboardEvent) => {
+			console.log(event);
+			if (event.key === 'Escape') {
+				console.log(this.leaf.view.scope);
+				this.leaf.view.scope = navScope;
+				console.log(this.leaf.view.scope);
+			}
+		};
 
 		console.log('Vim Reading View Navigation loaded.');
 	}
 
-
 	async onunload() {
 		removeEventListener('keydown', this.jumpTopEvent);
-        for (const el of this.uninstall) {
-            el()
-        }
+		for (const el of this.uninstall) {
+			el();
+		}
 		console.log('Vim Reading View Navigation unloaded.');
 	}
 
