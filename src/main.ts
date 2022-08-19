@@ -53,6 +53,7 @@ const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
 			if (self.keyArray.length === 0) {
 				addEventListener('keydown', self.jumpTopEvent);
 				self.keyArray.push(evt.key);
+                return false;
 			}
 		}
 		return true;
