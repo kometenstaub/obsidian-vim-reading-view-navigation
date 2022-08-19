@@ -131,7 +131,7 @@ export default class VimReadingViewNavigation extends Plugin {
 										oldMethod.apply(this, args);
 									// @ts-expect-error, not typed
 									leaf.view.scope = navScope;
-                                    // otherwise listener wouldn't get removed when button is clicked
+									// otherwise listener wouldn't get removed when button is clicked
 									leaf.view.containerEl.removeEventListener(
 										'keydown',
 										listener,
