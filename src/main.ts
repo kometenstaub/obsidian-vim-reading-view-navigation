@@ -24,7 +24,7 @@ declare module 'obsidian' {
 	}
 }
 
-const DEFAULT_SETTINGS: VimScrollSetting = { scrollDifference: 1 };
+const DEFAULT_SETTINGS: VimScrollSetting = { scrollDifference: 4 };
 
 const registerScopes = (scope: Scope, plugin: VimReadingViewNavigation) => {
 	const self = plugin;
